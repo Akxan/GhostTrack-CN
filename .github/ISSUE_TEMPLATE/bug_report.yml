@@ -1,0 +1,94 @@
+name: 🐛 Bug 反馈 / Bug Report
+description: 报告一个 bug 或异常行为 / Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢提交 bug 报告！请尽量填写下面的字段，方便快速定位问题。
+        Thanks for taking the time to file a bug! Please fill in the fields below to help us reproduce.
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / Version
+      description: GhostTrack-CN 的 git commit hash 或 release tag
+      placeholder: "v1.0.0 或 main@abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统 / OS
+      multiple: true
+      options:
+        - macOS
+        - Linux (Ubuntu/Debian)
+        - Linux (其他)
+        - Windows
+        - Termux (Android)
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python 版本 / Python Version
+      description: 运行 `python3 --version` 的输出
+      placeholder: "Python 3.11.8"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: 出问题的功能 / Affected Feature
+      options:
+        - IP 追踪 / IP tracker
+        - 本机 IP / My IP
+        - 电话号码 / Phone tracker
+        - 用户名扫描 / Username scan
+        - WHOIS
+        - MX 记录 / MX records
+        - 邮箱验证 / Email validation
+        - CLI 参数 / CLI args
+        - 安装 / Installation
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: 复现命令 / Reproduction Command
+      description: 完整的命令和输入
+      placeholder: |
+        python3 GhostTR.py ip 8.8.8.8 --json
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为 / Expected Behavior
+      placeholder: 应该返回 IP 信息的 JSON
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / Actual Behavior
+      description: 完整的输出/报错栈
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 其他信息 / Additional Context
+      description: 网络环境、依赖版本（`pip freeze`）、是否走代理等

@@ -7,6 +7,7 @@
 **一站式查询 IP · 电话 · 用户名 · 域名 WHOIS · MX 记录 · 邮箱有效性**
 
 [![CI](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Akxan/GhostTrack-CN/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/GhostTrack-CN)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-47%20passed-success.svg)](tests/)
@@ -19,7 +20,9 @@
 [![Issues](https://img.shields.io/github/issues/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
 
-[**📖 详细教程**](TUTORIAL.md) · [**🐛 报 Bug**](https://github.com/Akxan/GhostTrack-CN/issues) · [**🤝 贡献代码**](CONTRIBUTING.md)
+**🇨🇳 中文 · [🇬🇧 English](README.en.md)**
+
+[**📖 详细教程**](TUTORIAL.md) · [**🐛 报 Bug**](https://github.com/Akxan/GhostTrack-CN/issues) · [**🤝 贡献代码**](CONTRIBUTING.md) · [**📝 更新日志**](CHANGELOG.md)
 
 </div>
 
@@ -100,6 +103,23 @@
 </td>
 </tr>
 </table>
+
+---
+
+## 🆚 与同类工具对比
+
+| 工具 | IP | 电话 | 用户名 | WHOIS | MX | 邮箱 | 中文优先 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| [Sherlock](https://github.com/sherlock-project/sherlock) | ❌ | ❌ | ✅ (400+) | ❌ | ❌ | ❌ | ❌ |
+| [Maigret](https://github.com/soxoj/maigret) | ❌ | ❌ | ✅ (3000+) | ❌ | ❌ | ❌ | ❌ |
+| [holehe](https://github.com/megadose/holehe) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| [theHarvester](https://github.com/laramies/theHarvester) | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
+| [Recon-ng](https://github.com/lanmaster53/recon-ng) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **GhostTrack-CN** | ✅ | ✅ | ✅ (23) | ✅ | ✅ | ✅ | ✅ |
+
+> 💡 **定位说明**：GhostTrack-CN **不是**为了在用户名扫描深度上跟 Sherlock 卷，而是做**轻量级一站式中文工具**。
+> - 只查用户名 → Sherlock / Maigret 更专业
+> - 想一个工具搞定 6 类查询且全中文 → **GhostTrack-CN 就是为你准备的**
 
 ---
 
@@ -326,6 +346,12 @@ GhostTrack-CN/
 - 📞 **诈骗号码识别**：判断陌生来电的归属与运营商
 - 📧 **邮件营销**：邮箱清单的有效性预筛
 - 🌍 **个人调研**：查 VPN 出口、检查 DNS 配置
+
+---
+
+## 📈 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Akxan/GhostTrack-CN&type=Date)](https://star-history.com/#Akxan/GhostTrack-CN&Date)
 
 ---
 

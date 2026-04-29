@@ -129,7 +129,24 @@ python GhostTR.py
 
 ## 启动与菜单导航
 
-运行 `python3 GhostTR.py` 后会看到主菜单：
+### 首次启动 —— 选择语言
+
+第一次运行 `python3 GhostTR.py` 时会出现语言选择器：
+
+```
+ ╔════════════════════════════════════════════╗
+ ║  请选择语言 / Please select language:      ║
+ ╚════════════════════════════════════════════╝
+
+  [ 1 ] 中文 (Chinese)
+  [ 2 ] English (英文)
+
+ >>>
+```
+
+选择后会保存到 `~/.ghosttrack/config.json`，下次自动用同一语言。后续可以随时通过菜单 `[ 8 ]` 切换。
+
+### 主菜单
 
 ```
        ________               __      ______                __
@@ -147,6 +164,7 @@ python GhostTR.py
 [ 5 ] 域名 WHOIS 查询
 [ 6 ] 域名 MX 记录
 [ 7 ] 邮箱有效性检查
+[ 8 ] 切换语言 / Language
 [ 0 ] 退出
 
  [ + ] 请选择功能 :
@@ -156,8 +174,20 @@ python GhostTR.py
 
 - 输入对应**数字**后回车
 - 每个功能跑完会提示「按回车键继续」—— 按回车回到主菜单
+- `[ 8 ]` 随时切换中/英文 UI，立即生效并保存
 - 任何时候按 `Ctrl + C` 可以强制退出
 - 输入非数字（如字母）会提示「请输入数字」并重新让你选
+
+### 命令行强制语言
+
+不进入交互菜单，直接用 CLI 时也可指定语言：
+
+```bash
+python3 GhostTR.py --lang en ip 8.8.8.8     # 强制英文输出
+python3 GhostTR.py --lang zh user torvalds  # 强制中文输出
+```
+
+语言优先级：**`--lang` 标志 > 配置文件 > 环境变量 `LANG` > 默认（中文）**
 
 ---
 
@@ -285,7 +315,7 @@ python GhostTR.py
 
 ### ④ 用户名追踪
 
-**作用**：把你输入的用户名拼到 23 个主流社交平台的 URL 中，逐一访问看是否返回 HTTP 200。
+**作用**：把你输入的用户名拼到 **2020 个主流社交/技术平台** 的 URL 中并发访问，按区域和主题分组返回命中结果。数据库整合自三大上游：[Maigret](https://github.com/soxoj/maigret) + [Sherlock](https://github.com/sherlock-project/sherlock) + [WhatsMyName](https://github.com/WebBreacher/WhatsMyName)，加上手工 curated 的中文/西语区精选。
 
 **操作示范**：
 
@@ -294,31 +324,63 @@ python GhostTR.py
 请输入用户名 : torvalds
 ```
 
-**输出示例**：
+**输出示例**（默认只显示命中）：
 
 ```
-========== 用户名信息 ==========
+========== 用户名扫描结果 ==========
 
- [ + ] Facebook : https://www.facebook.com/torvalds
- [ + ] Twitter : https://www.twitter.com/torvalds
- [ + ] Instagram : https://www.instagram.com/torvalds
- [ + ] LinkedIn : 未找到该用户名 !
- [ + ] GitHub : https://www.github.com/torvalds
- [ + ] Pinterest : https://www.pinterest.com/torvalds
+ 共扫描 2020 个平台，命中 317 个：
+ （仅显示命中；用 --all 查看未命中）
+
+ ┌─ 代码与开发 (26/54) ─
+ [ + ] GitHub                         https://github.com/torvalds
+ [ + ] GitLab                         https://gitlab.com/torvalds
+ [ + ] Bitbucket                      https://bitbucket.org/torvalds
+ ...
+
+ ┌─ 中文平台（陆/台/港/星/马） (12/46) ─
+ [ + ] CSDN                           https://blog.csdn.net/torvalds
+ [ + ] V2EX                           https://v2ex.com/member/torvalds
+ [ + ] Dcard 狄卡                     https://www.dcard.tw/@torvalds
+ ...
+
+ ┌─ 西语圈（西班牙/拉美） (8/52) ─
+ [ + ] MercadoLibre AR                https://perfil.mercadolibre.com.ar/torvalds
+ [ + ] Wallapop                       https://es.wallapop.com/user/torvalds
  ...
 ```
 
-**覆盖的 23 个平台**：
+**平台分类（12 大类，2020 总数）**：
 
-Facebook · Twitter · Instagram · LinkedIn · GitHub · Pinterest · Tumblr · YouTube · SoundCloud · Snapchat · TikTok · Behance · Medium · Quora · Flickr · Periscope · Twitch · Dribbble · StumbleUpon · Ello · Product Hunt · Telegram · We Heart It
+| 类别 | 数量 | 典型平台 |
+|---|---:|---|
+| `code` | 54 | GitHub / GitLab / LeetCode / CodePen ... |
+| `social` | 82 | Twitter / Facebook / Mastodon / Bluesky ... |
+| `forum` | 284 | Reddit / Quora / Disqus + 各国论坛 |
+| `video` | 13 | YouTube / TikTok / Twitch / Vimeo ... |
+| `music` | 8 | SoundCloud / Bandcamp / Last.fm ... |
+| `writing` | 35 | Medium / Substack / 简书 ... |
+| `art` | 16 | DeviantArt / ArtStation / Behance ... |
+| `gaming` | 41 | Steam / Itch.io / Lichess ... |
+| `funding` | 14 | Patreon / Ko-fi / OpenCollective ... |
+| **`chinese`** | **46** | 微博 · 知乎 · CSDN · V2EX · 简书 · Dcard · Mobile01 · 巴哈姆特 · PIXNET · LIHKG · Shopee TW/SG/MY · ... |
+| **`spanish`** | **52** | Wallapop · MercadoLibre AR/MX/BR · Menéame · Taringa · Forocoches · Hispachan · Forosperu · Xataka · ... |
+| `other` | 1375 | Maigret 长尾（小众/地区性） |
+
+**性能 / 调优**：
+
+- 默认 **30 线程并发**，`--workers 50` 可加速到 ~45 秒完成 2020 平台全扫描
+- 默认**只显示命中**（不然 2020 行太多）—— `--all` / `[ 4 ] 用户名追踪` 后用 `--all` 选项查看完整报告
+- **三重检测逻辑**：HTTP 200 → 不含 `not_found` 模式（如 "page not found"） → 含 `must_contain` 模式（如平台特征 HTML）
+- 数据库可随时刷新：`python3 tools/build_platforms.py` 自动从三大上游拉最新
 
 **重要说明**：
 
-> 本项目已经做了优化（**并发扫描 + 内容关键词检测**），但准确率仍受平台反爬机制影响：
-> - **优势**：使用 Chrome User-Agent + 10 线程并发，比串行版本快 10-20 倍（23 个平台 ~3 秒）
-> - **检测逻辑**：HTTP 200 + 不包含 `not found` 等关键词
-> - **局限**：登录墙严重的平台（LinkedIn、Instagram）依然会有误报
-> - 需要更可靠的用户名搜索建议改用 [Sherlock](https://github.com/sherlock-project/sherlock)
+> ⚠️ **2020 平台中约 1375 个为 Maigret 长尾**，许多是小众/地区性站点。命中率因平台而异：
+> - 主流平台（GitHub / Twitter / Reddit）：精度 95%+
+> - 中文/西语精选区域：精度 85%+（手工 curate 过）
+> - Maigret 长尾：精度 70-80%（部分有 must_contain 验证）
+> - 真正登录墙的平台（LinkedIn / Instagram）依然会误报「未找到」
 
 ---
 
@@ -440,6 +502,18 @@ python3 GhostTR.py email someone@gmail.com
 | `--json` | 输出 JSON 而非美化文本，方便管道处理 |
 | `--save DIR` | 同时把结果保存为 `DIR/<功能>_<时间戳>.json` |
 | `--no-color` | 禁用彩色输出 |
+| `--lang zh\|en` | 强制语言（覆盖配置文件 + 环境变量）|
+
+### user 子命令专属选项
+
+| 选项 | 作用 |
+|---|---|
+| `--workers N` | 并发线程数，默认 30；2020 平台建议 50 |
+| `--all` | 显示所有平台（含未命中），默认仅显示命中 |
+
+```bash
+python3 GhostTR.py user torvalds --workers 50 --all
+```
 
 ### 示例：与 jq 联动
 
@@ -516,8 +590,11 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 
 ### Q5: 选项 4 用户名查询大量显示「未找到」
 
-**原因**：判断逻辑过于简单（只看 HTTP 200），现代社交平台基本都有反爬机制。
-**解决**：改用 [Sherlock](https://github.com/sherlock-project/sherlock) 等更专业的工具。
+**原因**：现代社交平台普遍有反爬机制。本项目已使用 Chrome User-Agent + `must_contain` 双重检测大幅降低误报，但 LinkedIn / Instagram / TikTok 等强登录墙平台仍可能误判。
+**解决**：
+- 用 `--all` 看完整结果而非默认压缩输出
+- 试试更高 `--workers` 加速
+- 或者只看主流平台：`python3 GhostTR.py user xxx --json | jq '.[] | select(.) | .' | head`
 
 ---
 
@@ -525,8 +602,9 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 
 **原因**：终端字符编码不是 UTF-8。
 **解决**：
-- macOS / Linux：在 shell 里执行 `export LANG=zh_CN.UTF-8`
-- Windows PowerShell：执行 `chcp 65001`
+- macOS / Linux：`export LANG=zh_CN.UTF-8`
+- Windows PowerShell：`chcp 65001`
+- 或者直接用英文 UI：`python3 GhostTR.py --lang en`
 
 ---
 
@@ -537,13 +615,34 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 
 ---
 
+### Q8: 想换语言怎么办？
+
+**菜单方式**：在主菜单选 `[ 8 ] 切换语言 / Language`，立即生效并保存到 `~/.ghosttrack/config.json`。
+
+**CLI 方式**：每次加 `--lang en` 或 `--lang zh`（覆盖一次，不写入配置）。
+
+**重置语言选择**：删除 `~/.ghosttrack/config.json`，下次启动会重新弹出语言选择器。
+
+---
+
+### Q9: 平台数据库怎么更新？
+
+```bash
+python3 tools/build_platforms.py
+```
+
+会从 Maigret + Sherlock + WhatsMyName 三个上游 GitHub 仓库拉取最新 sites 数据，过滤、去重、自动分类后覆盖 `data/platforms.json`。建议每月跑一次。
+
+---
+
 ## 已知限制
 
 1. **数据语言**：`ipwho.is` 返回的城市/地区名仍为英文（国家名已通过本地映射表译成中文）
-2. **用户名扫描不完美**：登录墙严重的平台（LinkedIn、Instagram、TikTok）依然有误报
-3. **WHOIS 速度**：跨地区查询某些 TLD 时较慢（10-15 秒）
-4. **无代理支持**：默认走系统直连，无内置 HTTP/SOCKS 代理选项
-5. **国家中文映射表**：约 180 个，极少数小国家可能落到英文 fallback
+2. **用户名扫描准确率有限**：约 1375 个 Maigret 长尾平台仅做基本检测，有 20-30% 误报
+3. **登录墙平台**：LinkedIn / Instagram / TikTok 强反爬，命中率较低
+4. **WHOIS 速度**：跨地区查询某些 TLD 时较慢（10-15 秒）
+5. **无代理支持**：默认走系统直连，无内置 HTTP/SOCKS 代理选项
+6. **国家中文映射表**：约 180 个，极少数小国家可能落到英文 fallback
 
 ---
 

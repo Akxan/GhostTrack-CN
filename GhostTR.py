@@ -135,7 +135,6 @@ TRANSLATIONS: dict = {
         'field.mobile_dial':    'Mobile Dial Format',
         'field.original_num':   'Original Number',
         'field.e164_format':    'E.164 Format',
-        'field.local_num':      'Local Number',
         'field.number_type':    'Number Type',
         # Phone types
         'phone.mobile':         'Mobile phone',
@@ -176,7 +175,6 @@ TRANSLATIONS: dict = {
         'msg.none':             '(none)',
         'msg.saved_to':         '[ Saved to {path} ]',
         'msg.network_failed':   'Query failed, please check network',
-        'msg.scanning':         'Scanning {n} platforms in parallel...',
         # Categories
         'cat.code':             'Code & Dev',
         'cat.social':           'Social',
@@ -271,7 +269,6 @@ TRANSLATIONS: dict = {
         'field.mobile_dial':    '移动拨号格式',
         'field.original_num':   '原始号码',
         'field.e164_format':    'E.164 格式',
-        'field.local_num':      '本地号码',
         'field.number_type':    '号码类型',
         'phone.mobile':         '移动电话',
         'phone.fixed':          '固定电话',
@@ -308,7 +305,6 @@ TRANSLATIONS: dict = {
         'msg.none':             '(无)',
         'msg.saved_to':         '[ 已保存到 {path} ]',
         'msg.network_failed':   '查询失败，请检查网络',
-        'msg.scanning':         '正在并发扫描 {n} 个平台...',
         'cat.code':             '代码与开发',
         'cat.social':           '社交网络',
         'cat.forum':            '论坛社区',
@@ -824,7 +820,8 @@ def _merge_platforms(curated: list, extended: list) -> list:
     return merged
 
 
-# 合并：手工 curated 的 113 个 + Maigret 的 1409 个 → 约 1500 个
+# 合并：手工 curated（含中文/西语精选）+ data/platforms.json（Maigret + Sherlock + WhatsMyName）
+# 当前实测合并后总数 ~2020 个平台
 PLATFORMS = _merge_platforms(PLATFORMS, _load_platforms_json(_PLATFORMS_JSON))
 
 

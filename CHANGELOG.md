@@ -12,8 +12,81 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 代理支持 (`--proxy http://...` / SOCKS5)
 - 批量输入模式 (`--batch ips.txt`)
 - HIBP (Have I Been Pwned) 邮箱泄露集成
-- English UI mode (`--lang en`)
 - PyPI 发布 (`pip install ghosttrack-cn`)
+- Docker 镜像
+
+---
+
+## [1.1.0] — 2026-04-29
+
+OSINT 信息检索能力大幅扩展。从 113 个手工 curated 平台跃升至 **2020 个**（合并三大上游数据源），并新增完整的中英双语 i18n 系统。
+
+### ✨ Added 新增
+
+- **🌍 完整中英双语 UI（i18n）**
+  - 全新 ~130 key 翻译系统（`TRANSLATIONS` dict）
+  - 首次启动弹出语言选择器（中文 / English）
+  - 菜单 `[ 8 ]` 切换语言，立即生效
+  - CLI `--lang zh|en` 标志（一次性覆盖）
+  - 偏好持久化到 `~/.ghosttrack/config.json`
+  - 优先级：CLI > 配置文件 > `LANG` 环境变量 > 默认
+  - 国家名根据语言显示：zh → "美国 (United States)"；en → "United States"
+
+- **📊 平台数 113 → 2020（18×）**
+  - 整合三大 OSINT 上游数据库：
+    - [Maigret](https://github.com/soxoj/maigret)：1409 sites
+    - [Sherlock](https://github.com/sherlock-project/sherlock)：475 sites
+    - [WhatsMyName](https://github.com/WebBreacher/WhatsMyName)：708 sites
+  - 加上手工 curated 的中文/西语区域精选
+  - 总计 2020 个去重平台
+
+- **🇨🇳 中文圈深度覆盖（46 个）**
+  - 简中 PRC：CSDN、V2EX、知乎、微博、豆瓣、贴吧、SegmentFault、掘金、力扣 CN、博客园、IT 之家、雪球、即刻、36 氪、虎扑、牛客、AcWing、阿里云、51CTO、马蜂窝、穷游、果壳、起点、晋江、360doc、大众点评 ...
+  - 繁中 / 港台星马：Dcard、Mobile01、巴哈姆特、PIXNET、隨意窩、iCook、LIHKG 連登、HK01、Carousell、Shopee TW/SG/MY ...
+
+- **🌎 西语圈覆盖（52 个）**
+  - 西班牙：Wallapop、Menéame、Forocoches、Genbeta、Xataka
+  - 拉美：MercadoLibre AR/MX/BR、Taringa、Hispachan、Forosperu
+  - 国际：Duolingo
+
+- **🛠 平台数据库构建工具**
+  - `tools/build_platforms.py` 一键拉取 3 上游 → 过滤、去重、自动分类 → 输出 `data/platforms.json`
+  - 智能分类：CHINESE_KEYWORDS / SPANISH_KEYWORDS / TLD-based / 主题关键词四级 fallback
+
+- **🔍 用户名扫描增强**
+  - `Platform` NamedTuple 新增 `must_contain` 字段，HTTP 200 + 不含 not_found + 含 must_contain 三重检测
+  - 默认 30 线程并发（原 10），`--workers N` 自定义
+  - 默认只显示命中（不然 2020 行太多），`--all` 看完整报告
+  - 按 12 大类（含 chinese / spanish / other）分组显示，每组显示「命中/总数」
+
+- **📜 Documentation**
+  - TUTORIAL.md 大幅扩充：新增 i18n、`--all`、语言切换、平台数据库刷新章节
+  - CHANGELOG.md 加入 v1.1.0 条目
+
+### 🚀 Changed 改进
+
+- 默认用户名扫描线程数 10 → **30**
+- 用户名扫描结果按区域 + 主题分组（原来一字排开）
+- `print_username_results()` 新增 `show_all` 参数控制详略
+- CI Python matrix 3.9-3.12 → **3.10-3.13**（3.9 已 EOL）
+
+### 🐛 Fixed 修复
+
+- 死代码清理：`msg.scanning`、`field.local_num` 翻译键定义但从未使用
+- 注释「约 1500 个」→「约 2020 个」对齐实际数据
+
+### 📦 Dependencies 依赖
+
+- `requests` >=2.28 → >=2.33.1
+- `phonenumbers` >=8.13 → >=9.0.29
+- `dnspython` >=2.4 → >=2.8.0
+- `python-whois` >=0.9 → >=0.9.6
+- CI Actions：checkout v5 → v6、setup-python v5 → v6、codecov v5 → v6
+
+### 🧪 Tests
+
+- 47 → **51 测试**（新增 4 个 Platform / 类别覆盖测试）
+- 测试目标：`assert len(PLATFORMS) >= 2000`、`>= 30 chinese`、`>= 30 spanish`
 
 ---
 
@@ -67,5 +140,6 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
 
-[Unreleased]: https://github.com/Akxan/GhostTrack-CN/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Akxan/GhostTrack-CN/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Akxan/GhostTrack-CN/releases/tag/v1.0.0

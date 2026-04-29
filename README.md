@@ -10,7 +10,8 @@
 [![codecov](https://codecov.io/gh/Akxan/GhostTrack-CN/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/GhostTrack-CN)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-47%20passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-51%20passed-success.svg)](tests/)
+[![Platforms](https://img.shields.io/badge/platforms-2020-orange.svg)](data/platforms.json)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-安装)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
@@ -45,7 +46,7 @@
 | **使用方式** | 仅交互菜单 | 交互菜单 + **CLI 参数模式** + JSON 输出 |
 | **代码质量** | 无类型提示、无测试 | 类型注解 + **47 个 pytest 测试** + CI |
 | **国家显示** | 仅英文 | 中文映射（180+ 国家/地区） |
-| **代码量** | 316 行单文件 | 749 行（含完整重构与新功能） |
+| **代码量** | 316 行单文件 | 1400 行 + 51 测试 + 2020 平台数据库 |
 
 ---
 
@@ -322,7 +323,9 @@ pytest tests/ --cov=. --cov-report=term-missing
 
 ```
 GhostTrack-CN/
-├── GhostTR.py                  # 主脚本（749 行，含全部功能）
+├── GhostTR.py                  # 主脚本（1400 行，含全部功能 + i18n）
+├── data/platforms.json         # 2020 平台数据库（Maigret + Sherlock + WhatsMyName 合并）
+├── tools/build_platforms.py    # 平台数据库重建脚本（拉取上游最新）
 ├── requirements.txt            # 运行依赖
 ├── tests/
 │   ├── __init__.py

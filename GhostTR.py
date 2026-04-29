@@ -202,6 +202,8 @@ TRANSLATIONS: dict = {
         'err.email_format':     'Invalid email format',
         'err.query_failed':     'Query failed: {msg}',
         'err.empty_input':      'Input is empty',
+        'msg.progress':         'Scanning',
+        'msg.found':            'found',
     },
     'zh': {
         'menu.ip_track':        'IP 追踪',
@@ -331,6 +333,8 @@ TRANSLATIONS: dict = {
         'err.email_format':     '邮箱格式不合法',
         'err.query_failed':     '查询失败：{msg}',
         'err.empty_input':      '输入为空',
+        'msg.progress':         '扫描中',
+        'msg.found':            '已命中',
     },
 }
 
@@ -853,16 +857,41 @@ def _check_username(platform: 'Platform', username: str, timeout: float):
     return platform, full_url
 
 
-def track_username(username: str, *, max_workers: int = 30, timeout: float = 8) -> dict:
+def _print_scan_progress(done: int, total: int, found_count: int) -> None:
+    """在 stderr 上原地刷新扫描进度条。仅当 stderr 是 TTY 时输出，避免污染日志/管道。"""
+    if not sys.stderr.isatty():
+        return
+    bar_width = 30
+    pct = done / total if total else 1.0
+    filled = int(bar_width * pct)
+    bar = '█' * filled + '░' * (bar_width - filled)
+    msg = f"\r {Color.Wh}[{Color.Gr}{bar}{Color.Wh}] {done}/{total} ({pct*100:5.1f}%) {t('msg.found')}: {Color.Gr}{found_count}{Color.Reset}  "
+    sys.stderr.write(msg)
+    sys.stderr.flush()
+
+
+def _clear_progress_line() -> None:
+    """清掉进度条所在那行（仅 TTY）。"""
+    if sys.stderr.isatty():
+        sys.stderr.write('\r' + ' ' * 80 + '\r')
+        sys.stderr.flush()
+
+
+def track_username(username: str, *, max_workers: int = 30, timeout: float = 8,
+                   show_progress: bool = True) -> dict:
     """并发扫描所有平台，返回 {platform_name: url_or_None}（按 PLATFORMS 顺序）。
     空 username 会被拒绝以避免命中各平台主页造成误报。
-    单个 worker 抛任何异常都不影响其它平台 —— 该平台标记为 None 跳过。"""
+    单个 worker 抛任何异常都不影响其它平台 —— 该平台标记为 None 跳过。
+    show_progress=True 且 stderr 是 TTY 时显示进度条。"""
     username = (username or '').strip()
     if not username:
         return {p.name: None for p in PLATFORMS}
     if max_workers < 1:
         max_workers = 1
     found: dict = {}
+    total = len(PLATFORMS)
+    found_count = 0
+    done = 0
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = {ex.submit(_check_username, p, username, timeout): p for p in PLATFORMS}
         for fut in as_completed(futures):
@@ -873,6 +902,13 @@ def track_username(username: str, *, max_workers: int = 30, timeout: float = 8) 
                 platform = futures[fut]
                 url = None
             found[platform.name] = url
+            done += 1
+            if url:
+                found_count += 1
+            if show_progress:
+                _print_scan_progress(done, total, found_count)
+    if show_progress:
+        _clear_progress_line()
     return {p.name: found[p.name] for p in PLATFORMS}
 
 

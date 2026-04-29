@@ -125,7 +125,6 @@ TRANSLATIONS: dict = {
         'field.utc_offset':     'UTC Offset',
         # Phone fields
         'field.location':       'Location',
-        'field.region':         'Region',
         'field.region_code':    'Region Code',
         'field.timezone':       'Timezone',
         'field.carrier':        'Carrier',
@@ -202,6 +201,7 @@ TRANSLATIONS: dict = {
         'err.no_mx':            '{domain} has no MX records',
         'err.email_format':     'Invalid email format',
         'err.query_failed':     'Query failed: {msg}',
+        'err.empty_input':      'Input is empty',
     },
     'zh': {
         'menu.ip_track':        'IP 追踪',
@@ -330,6 +330,7 @@ TRANSLATIONS: dict = {
         'err.no_mx':            '{domain} 没有 MX 记录',
         'err.email_format':     '邮箱格式不合法',
         'err.query_failed':     '查询失败：{msg}',
+        'err.empty_input':      '输入为空',
     },
 }
 
@@ -522,6 +523,10 @@ def clear_screen() -> None:
 # 核心查询：IP
 # ====================================================================
 def track_ip(ip: str) -> dict:
+    # 空输入会让 ipwho.is 返回调用方自己的 IP，这是误导性行为，必须早返回
+    ip = (ip or '').strip()
+    if not ip:
+        return {'_error': t('err.empty_input')}
     resp = safe_get(f"https://ipwho.is/{ip}")
     if resp is None:
         return {'_error': t('err.network')}
@@ -826,10 +831,12 @@ PLATFORMS = _merge_platforms(PLATFORMS, _load_platforms_json(_PLATFORMS_JSON))
 
 
 def _check_username(platform: 'Platform', username: str, timeout: float):
-    """检查单个平台是否存在该用户名。返回 (Platform, URL or None)。"""
+    """检查单个平台是否存在该用户名。返回 (Platform, URL or None)。
+    任何 URL 模板异常（IndexError/KeyError/ValueError）都视为该平台不可用。"""
     try:
         full_url = platform.url.format(username)
-    except (IndexError, KeyError):
+    except (IndexError, KeyError, ValueError):
+        # ValueError 覆盖 str.format 的格式串错误（如 '{:d}'、'{0!q}' 等）
         return platform, None
     resp = safe_get(full_url, timeout=timeout, allow_redirects=True)
     if resp is None or resp.status_code != 200:
@@ -847,12 +854,24 @@ def _check_username(platform: 'Platform', username: str, timeout: float):
 
 
 def track_username(username: str, *, max_workers: int = 30, timeout: float = 8) -> dict:
-    """并发扫描所有平台，返回 {platform_name: url_or_None}（按 PLATFORMS 顺序）。"""
+    """并发扫描所有平台，返回 {platform_name: url_or_None}（按 PLATFORMS 顺序）。
+    空 username 会被拒绝以避免命中各平台主页造成误报。
+    单个 worker 抛任何异常都不影响其它平台 —— 该平台标记为 None 跳过。"""
+    username = (username or '').strip()
+    if not username:
+        return {p.name: None for p in PLATFORMS}
+    if max_workers < 1:
+        max_workers = 1
     found: dict = {}
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = {ex.submit(_check_username, p, username, timeout): p for p in PLATFORMS}
         for fut in as_completed(futures):
-            platform, url = fut.result()
+            try:
+                platform, url = fut.result()
+            except Exception:
+                # 任何 worker 内未捕获的异常都视为该平台失败，不影响其它 2020 个
+                platform = futures[fut]
+                url = None
             found[platform.name] = url
     return {p.name: found[p.name] for p in PLATFORMS}
 
@@ -1237,6 +1256,19 @@ def menu_loop(save_dir: Optional[str] = None) -> None:
 # ====================================================================
 # CLI
 # ====================================================================
+def _positive_int(value: str) -> int:
+    """argparse 校验器：仅接受 1..200 的正整数。"""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError(f"expected integer, got {value!r}")
+    if n < 1:
+        raise argparse.ArgumentTypeError(f"must be >= 1, got {n}")
+    if n > 200:
+        raise argparse.ArgumentTypeError(f"must be <= 200 (avoid system overload), got {n}")
+    return n
+
+
 def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument('--json', action='store_const', const=True,
@@ -1281,7 +1313,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser('user', parents=[common], help='Scan username / 用户名扫描')
     sp.add_argument('username')
-    sp.add_argument('--workers', type=int, default=30, help='Concurrent threads / 并发线程数 (default: 30)')
+    sp.add_argument('--workers', type=_positive_int, default=30,
+                    help='Concurrent threads / 并发线程数 (default: 30, max 200)')
     sp.add_argument('--all', action='store_true', dest='show_all',
                     help='Show all platforms incl. misses / 显示所有平台（含未命中）')
 

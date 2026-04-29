@@ -15,8 +15,6 @@ Usage:
 
 import json
 import os
-import re
-import sys
 from collections import Counter
 from urllib.parse import urlparse
 
@@ -296,9 +294,12 @@ def build():
     raw = {k: fetch(u) for k, u in SOURCES.items()}
 
     print("\n=== Parsing ===")
-    maigret = parse_maigret(raw["maigret"]);     print(f"  maigret:      {len(maigret)}")
-    sherlock = parse_sherlock(raw["sherlock"]);  print(f"  sherlock:     {len(sherlock)}")
-    wmn = parse_wmn(raw["whatsmyname"]);         print(f"  whatsmyname:  {len(wmn)}")
+    maigret = parse_maigret(raw["maigret"])
+    print(f"  maigret:      {len(maigret)}")
+    sherlock = parse_sherlock(raw["sherlock"])
+    print(f"  sherlock:     {len(sherlock)}")
+    wmn = parse_wmn(raw["whatsmyname"])
+    print(f"  whatsmyname:  {len(wmn)}")
 
     print("\n=== Merging + dedup ===")
     merged = merge_dedup(
@@ -314,7 +315,7 @@ def build():
         item.pop("_source", None)
 
     by_cat = Counter(p["category"] for p in merged)
-    print(f"  by category:")
+    print("  by category:")
     for cat, n in by_cat.most_common():
         print(f"    {cat:10} {n}")
 

@@ -144,6 +144,19 @@ class TestTrackIp:
             data = gt.track_ip('8.8.8.8')
         assert '_error' in data
 
+    def test_empty_ip_returns_error_without_api_call(self):
+        """空 IP 输入会让 ipwho.is 返回调用方 IP，必须早返回错误。"""
+        with patch.object(gt, 'safe_get') as mock_get:
+            data = gt.track_ip('')
+            assert mock_get.call_count == 0
+        assert '_error' in data
+
+    def test_whitespace_ip_returns_error(self):
+        with patch.object(gt, 'safe_get') as mock_get:
+            data = gt.track_ip('   ')
+            assert mock_get.call_count == 0
+        assert '_error' in data
+
 
 # ------------------------------------------------------------------
 # show_my_ip
@@ -189,6 +202,46 @@ class TestCheckUsername:
         with patch.object(gt, 'safe_get', return_value=None):
             p, url = gt._check_username(self._make_platform(), 'u', 5)
         assert url is None
+
+    def test_empty_username_returns_no_hits(self):
+        """空 username 不应误报命中各平台主页。"""
+        # safe_get 不应被调用，因为应当早返回
+        with patch.object(gt, 'safe_get') as mock_get:
+            results = gt.track_username('')
+            assert mock_get.call_count == 0
+        assert all(v is None for v in results.values())
+        assert len(results) == len(gt.PLATFORMS)
+
+    def test_whitespace_username_returns_no_hits(self):
+        with patch.object(gt, 'safe_get') as mock_get:
+            results = gt.track_username('   ')
+            assert mock_get.call_count == 0
+        assert all(v is None for v in results.values())
+
+    def test_check_username_handles_format_value_error(self):
+        """str.format 的格式串错误（'{:d}' 等）必须被吞掉，不能崩溃。"""
+        bad_platform = gt.Platform('BadFmt', 'https://x.com/{:d}', 'code')
+        # 不需要 mock safe_get — 应在 .format() 处早返回
+        p, url = gt._check_username(bad_platform, 'alice', 5)
+        assert url is None
+        assert p.name == 'BadFmt'
+
+    def test_track_username_survives_worker_exception(self):
+        """单个 worker 抛任何异常不应让整个扫描崩溃。"""
+        # 让 safe_get 总是抛 RuntimeError，模拟 worker 灾难
+        with patch.object(gt, 'safe_get', side_effect=RuntimeError('simulated')):
+            results = gt.track_username('alice', max_workers=5)
+        # 必须返回正常的 dict，所有平台都是 None（因为全部失败）
+        assert isinstance(results, dict)
+        assert len(results) == len(gt.PLATFORMS)
+        assert all(v is None for v in results.values())
+
+    def test_track_username_clamps_zero_workers(self):
+        """传入 max_workers=0 不应崩溃。"""
+        # 不实际跑（避免真的 query 网络），只验证不抛异常
+        with patch.object(gt, 'safe_get', return_value=None):
+            results = gt.track_username('x', max_workers=0)
+        assert isinstance(results, dict)
 
     def test_platforms_count_meets_target(self):
         """对标 Maigret + Sherlock + WhatsMyName 合并，至少 2000 个平台。"""
@@ -280,6 +333,26 @@ class TestCliParser:
     def test_json_flag_absent(self):
         args = gt.build_parser().parse_args(['myip'])
         assert getattr(args, 'json', False) is False
+
+    def test_workers_rejects_zero(self):
+        with pytest.raises(SystemExit):
+            gt.build_parser().parse_args(['user', 'alice', '--workers', '0'])
+
+    def test_workers_rejects_negative(self):
+        with pytest.raises(SystemExit):
+            gt.build_parser().parse_args(['user', 'alice', '--workers', '-5'])
+
+    def test_workers_rejects_too_large(self):
+        with pytest.raises(SystemExit):
+            gt.build_parser().parse_args(['user', 'alice', '--workers', '500'])
+
+    def test_workers_rejects_non_integer(self):
+        with pytest.raises(SystemExit):
+            gt.build_parser().parse_args(['user', 'alice', '--workers', 'abc'])
+
+    def test_workers_accepts_valid(self):
+        args = gt.build_parser().parse_args(['user', 'alice', '--workers', '50'])
+        assert args.workers == 50
 
 
 # ------------------------------------------------------------------

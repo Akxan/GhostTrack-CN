@@ -163,29 +163,44 @@ class TestShowMyIp:
 # username 检查（单平台）
 # ------------------------------------------------------------------
 class TestCheckUsername:
+    def _make_platform(self, not_found=()):
+        return gt.Platform('GitHub', 'https://github.com/{}', 'code', not_found)
+
     def test_found(self):
         fake = MagicMock(status_code=200, content=b'<html>real profile</html>')
         with patch.object(gt, 'safe_get', return_value=fake):
-            name, url = gt._check_username('GitHub', 'https://github.com/{}', 'user', 5)
-        assert name == 'GitHub'
+            p, url = gt._check_username(self._make_platform(), 'user', 5)
+        assert p.name == 'GitHub'
         assert url == 'https://github.com/user'
 
     def test_404(self):
         fake = MagicMock(status_code=404)
         with patch.object(gt, 'safe_get', return_value=fake):
-            name, url = gt._check_username('GitHub', 'https://github.com/{}', 'x', 5)
+            p, url = gt._check_username(self._make_platform(), 'x', 5)
         assert url is None
 
     def test_content_pattern_says_not_found(self):
         fake = MagicMock(status_code=200, content=b'<title>Page not found</title>')
         with patch.object(gt, 'safe_get', return_value=fake):
-            name, url = gt._check_username('GitHub', 'https://github.com/{}', 'x', 5)
+            p, url = gt._check_username(self._make_platform((b'page not found',)), 'x', 5)
         assert url is None
 
     def test_network_error(self):
         with patch.object(gt, 'safe_get', return_value=None):
-            name, url = gt._check_username('Foo', 'https://x.com/{}', 'u', 5)
+            p, url = gt._check_username(self._make_platform(), 'u', 5)
         assert url is None
+
+    def test_platforms_count_meets_target(self):
+        """对标 Maigret 量级，至少 100 个平台，含中文社媒分类。"""
+        assert len(gt.PLATFORMS) >= 100
+        chinese = [p for p in gt.PLATFORMS if p.category == 'chinese']
+        assert len(chinese) >= 15
+
+    def test_all_categories_covered(self):
+        cats = {p.category for p in gt.PLATFORMS}
+        assert cats.issubset(set(gt.CATEGORY_ORDER))
+        for cat in cats:
+            assert cat in gt.CATEGORY_ORDER
 
 
 # ------------------------------------------------------------------

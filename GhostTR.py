@@ -14,7 +14,7 @@ import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Optional
+from typing import Any, NamedTuple, Optional
 
 import phonenumbers
 import requests
@@ -177,6 +177,17 @@ TRANSLATIONS: dict = {
         'msg.saved_to':         '[ Saved to {path} ]',
         'msg.network_failed':   'Query failed, please check network',
         'msg.scanning':         'Scanning {n} platforms in parallel...',
+        # Categories
+        'cat.code':             'Code & Dev',
+        'cat.social':           'Social',
+        'cat.forum':            'Forums',
+        'cat.video':            'Video',
+        'cat.music':            'Music',
+        'cat.writing':          'Writing',
+        'cat.art':              'Art & Design',
+        'cat.gaming':           'Gaming',
+        'cat.funding':          'Creator Economy',
+        'cat.chinese':          'Chinese Platforms',
         # Errors
         'err.network':          'Network request failed (timeout or connection error)',
         'err.non_json':         'API returned non-JSON response',
@@ -295,6 +306,16 @@ TRANSLATIONS: dict = {
         'msg.saved_to':         '[ 已保存到 {path} ]',
         'msg.network_failed':   '查询失败，请检查网络',
         'msg.scanning':         '正在并发扫描 {n} 个平台...',
+        'cat.code':             '代码与开发',
+        'cat.social':           '社交网络',
+        'cat.forum':            '论坛社区',
+        'cat.video':            '视频平台',
+        'cat.music':            '音乐平台',
+        'cat.writing':          '写作平台',
+        'cat.art':              '艺术与设计',
+        'cat.gaming':           '游戏平台',
+        'cat.funding':          '创作者经济',
+        'cat.chinese':          '中文平台',
         'err.network':          '网络请求失败（超时或连接错误）',
         'err.non_json':         'API 返回了非 JSON 响应',
         'err.unknown_api':      '未知 API 错误',
@@ -563,66 +584,177 @@ def track_phone(number: str, default_region: str = 'CN') -> dict:
 # ====================================================================
 # 核心查询：用户名扫描
 # ====================================================================
-SOCIAL_PLATFORMS = [
-    ('Facebook',     'https://www.facebook.com/{}'),
-    ('Twitter',      'https://twitter.com/{}'),
-    ('Instagram',    'https://www.instagram.com/{}'),
-    ('LinkedIn',     'https://www.linkedin.com/in/{}'),
-    ('GitHub',       'https://github.com/{}'),
-    ('Pinterest',    'https://www.pinterest.com/{}'),
-    ('Tumblr',       'https://{}.tumblr.com'),
-    ('YouTube',      'https://www.youtube.com/@{}'),
-    ('SoundCloud',   'https://soundcloud.com/{}'),
-    ('Snapchat',     'https://www.snapchat.com/add/{}'),
-    ('TikTok',       'https://www.tiktok.com/@{}'),
-    ('Behance',      'https://www.behance.net/{}'),
-    ('Medium',       'https://medium.com/@{}'),
-    ('Quora',        'https://www.quora.com/profile/{}'),
-    ('Flickr',       'https://www.flickr.com/people/{}'),
-    ('Twitch',       'https://www.twitch.tv/{}'),
-    ('Dribbble',     'https://dribbble.com/{}'),
-    ('Ello',         'https://ello.co/{}'),
-    ('Product Hunt', 'https://www.producthunt.com/@{}'),
-    ('Telegram',     'https://t.me/{}'),
-    ('Reddit',       'https://www.reddit.com/user/{}'),
-    ('GitLab',       'https://gitlab.com/{}'),
-    ('Keybase',      'https://keybase.io/{}'),
+class Platform(NamedTuple):
+    """单个社交/网站平台定义。"""
+    name: str
+    url: str
+    category: str          # 用于分组显示：code / social / forum / video / music / writing / art / gaming / funding / chinese
+    not_found: tuple = ()  # 字节模式列表，命中即视为「未找到」
+
+
+PLATFORMS = [
+    # ---- 代码与开发 / Code & Dev ----
+    Platform('GitHub',           'https://github.com/{}',                      'code', (b'not found', b'page-404')),
+    Platform('GitLab',           'https://gitlab.com/{}',                      'code', (b'page not found',)),
+    Platform('Bitbucket',        'https://bitbucket.org/{}',                   'code'),
+    Platform('Codeberg',         'https://codeberg.org/{}',                    'code'),
+    Platform('Sourcehut',        'https://sr.ht/~{}',                          'code'),
+    Platform('DEV.to',           'https://dev.to/{}',                          'code'),
+    Platform('Hashnode',         'https://hashnode.com/@{}',                   'code'),
+    Platform('HackerNews',       'https://news.ycombinator.com/user?id={}',    'code', (b'no such user',)),
+    Platform('Lobsters',         'https://lobste.rs/u/{}',                     'code'),
+    Platform('LeetCode',         'https://leetcode.com/{}/',                   'code'),
+    Platform('Codeforces',       'https://codeforces.com/profile/{}',          'code'),
+    Platform('AtCoder',          'https://atcoder.jp/users/{}',                'code'),
+    Platform('HackerRank',       'https://www.hackerrank.com/{}',              'code'),
+    Platform('CodePen',          'https://codepen.io/{}',                      'code'),
+    Platform('Replit',           'https://replit.com/@{}',                     'code'),
+    Platform('Glitch',           'https://glitch.com/@{}',                     'code'),
+    Platform('CodeSandbox',      'https://codesandbox.io/u/{}',                'code'),
+    Platform('Codewars',         'https://www.codewars.com/users/{}',          'code'),
+    Platform('NPM',              'https://www.npmjs.com/~{}',                  'code'),
+    Platform('PyPI',             'https://pypi.org/user/{}/',                  'code'),
+    Platform('RubyGems',         'https://rubygems.org/profiles/{}',           'code'),
+    Platform('Crates.io',        'https://crates.io/users/{}',                 'code'),
+    Platform('Docker Hub',       'https://hub.docker.com/u/{}',                'code'),
+    Platform('HuggingFace',      'https://huggingface.co/{}',                  'code'),
+    Platform('Kaggle',           'https://www.kaggle.com/{}',                  'code'),
+
+    # ---- 社交网络 / Social ----
+    Platform('Facebook',         'https://www.facebook.com/{}',                'social'),
+    Platform('Twitter',          'https://twitter.com/{}',                     'social'),
+    Platform('Instagram',        'https://www.instagram.com/{}',               'social'),
+    Platform('LinkedIn',         'https://www.linkedin.com/in/{}',             'social'),
+    Platform('Threads',          'https://www.threads.net/@{}',                'social'),
+    Platform('Bluesky',          'https://bsky.app/profile/{}.bsky.social',    'social'),
+    Platform('Mastodon',         'https://mastodon.social/@{}',                'social'),
+    Platform('Pinterest',        'https://www.pinterest.com/{}/',              'social', (b"sorry, we couldn't find",)),
+    Platform('Tumblr',           'https://{}.tumblr.com',                      'social', (b"there's nothing here",)),
+    Platform('Snapchat',         'https://www.snapchat.com/add/{}',            'social'),
+    Platform('Telegram',         'https://t.me/{}',                            'social'),
+    Platform('VK',               'https://vk.com/{}',                          'social'),
+    Platform('OK.ru',            'https://ok.ru/{}',                           'social'),
+    Platform('Mixi',             'https://mixi.jp/show_friend.pl?nickname={}', 'social'),
+    Platform('Plurk',            'https://www.plurk.com/{}',                   'social'),
+    Platform('Ello',             'https://ello.co/{}',                         'social'),
+    Platform('Keybase',          'https://keybase.io/{}',                      'social'),
+    Platform('Gravatar',         'https://en.gravatar.com/{}',                 'social'),
+
+    # ---- 论坛 / Forums ----
+    Platform('Reddit',           'https://www.reddit.com/user/{}',             'forum', (b'page not found', b'sorry, nobody on reddit')),
+    Platform('Quora',            'https://www.quora.com/profile/{}',           'forum', (b'page not found',)),
+    Platform('Disqus',           'https://disqus.com/by/{}/',                  'forum'),
+    Platform('Habr',             'https://habr.com/ru/users/{}/',              'forum'),
+    Platform('Medium',           'https://medium.com/@{}',                     'writing', (b'page not found',)),
+
+    # ---- 视频 / Video ----
+    Platform('YouTube',          'https://www.youtube.com/@{}',                'video'),
+    Platform('TikTok',           'https://www.tiktok.com/@{}',                 'video'),
+    Platform('Twitch',           'https://www.twitch.tv/{}',                   'video'),
+    Platform('Vimeo',            'https://vimeo.com/{}',                       'video'),
+    Platform('DailyMotion',      'https://www.dailymotion.com/{}',             'video'),
+    Platform('Rumble',           'https://rumble.com/c/{}',                    'video'),
+    Platform('Odysee',           'https://odysee.com/@{}',                     'video'),
+
+    # ---- 音乐 / Music ----
+    Platform('SoundCloud',       'https://soundcloud.com/{}',                  'music'),
+    Platform('Last.fm',          'https://www.last.fm/user/{}',                'music'),
+    Platform('Bandcamp',         'https://bandcamp.com/{}',                    'music'),
+    Platform('Mixcloud',         'https://www.mixcloud.com/{}/',               'music'),
+    Platform('ReverbNation',     'https://www.reverbnation.com/{}',            'music'),
+    Platform('AudioMack',        'https://audiomack.com/{}',                   'music'),
+    Platform('BandLab',          'https://www.bandlab.com/{}',                 'music'),
+
+    # ---- 写作 / Writing ----
+    Platform('Substack',         'https://{}.substack.com',                    'writing'),
+    Platform('Wattpad',          'https://www.wattpad.com/user/{}',            'writing'),
+    Platform('AO3',              'https://archiveofourown.org/users/{}',       'writing'),
+    Platform('FanFiction.net',   'https://www.fanfiction.net/u/{}',            'writing'),
+
+    # ---- 艺术与设计 / Art & Design ----
+    Platform('DeviantArt',       'https://www.deviantart.com/{}',              'art'),
+    Platform('ArtStation',       'https://www.artstation.com/{}',              'art'),
+    Platform('Behance',          'https://www.behance.net/{}',                 'art'),
+    Platform('Dribbble',         'https://dribbble.com/{}',                    'art'),
+    Platform('500px',            'https://500px.com/p/{}',                     'art'),
+    Platform('Unsplash',         'https://unsplash.com/@{}',                   'art'),
+    Platform('Flickr',           'https://www.flickr.com/people/{}',           'art'),
+    Platform('Newgrounds',       'https://{}.newgrounds.com',                  'art'),
+    Platform('Etsy',             'https://www.etsy.com/people/{}',             'art'),
+
+    # ---- 游戏 / Gaming ----
+    Platform('Steam',            'https://steamcommunity.com/id/{}',           'gaming'),
+    Platform('Itch.io',          'https://{}.itch.io',                         'gaming'),
+    Platform('Roblox',           'https://www.roblox.com/user.aspx?username={}', 'gaming'),
+    Platform('Speedrun.com',     'https://www.speedrun.com/user/{}',           'gaming'),
+    Platform('Chess.com',        'https://www.chess.com/member/{}',            'gaming'),
+    Platform('Lichess',          'https://lichess.org/@/{}',                   'gaming'),
+    Platform('MyAnimeList',      'https://myanimelist.net/profile/{}',         'gaming'),
+    Platform('AniList',          'https://anilist.co/user/{}',                 'gaming'),
+    Platform('BoardGameGeek',    'https://boardgamegeek.com/user/{}',          'gaming'),
+
+    # ---- 创作者经济 / Creator ----
+    Platform('Patreon',          'https://www.patreon.com/{}',                 'funding'),
+    Platform('Buy Me A Coffee',  'https://www.buymeacoffee.com/{}',            'funding'),
+    Platform('Ko-fi',            'https://ko-fi.com/{}',                       'funding'),
+    Platform('OpenCollective',   'https://opencollective.com/{}',              'funding'),
+    Platform('Liberapay',        'https://liberapay.com/{}/',                  'funding'),
+    Platform('Wellfound',        'https://wellfound.com/u/{}',                 'funding'),
+    Platform('Indie Hackers',    'https://www.indiehackers.com/{}',            'funding'),
+    Platform('Product Hunt',     'https://www.producthunt.com/@{}',            'funding'),
+
+    # ---- 阅读/书影 / Books & Films ----
+    Platform('Goodreads',        'https://www.goodreads.com/{}',               'art'),
+    Platform('Letterboxd',       'https://letterboxd.com/{}',                  'art'),
+
+    # ---- 中文平台 / Chinese ----
+    Platform('微博 Weibo',        'https://weibo.com/n/{}',                     'chinese'),
+    Platform('知乎 Zhihu',        'https://www.zhihu.com/people/{}',            'chinese'),
+    Platform('豆瓣 Douban',       'https://www.douban.com/people/{}/',          'chinese'),
+    Platform('百度贴吧 Tieba',    'https://tieba.baidu.com/home/main?un={}',    'chinese'),
+    Platform('CSDN',              'https://blog.csdn.net/{}',                   'chinese'),
+    Platform('V2EX',              'https://v2ex.com/member/{}',                 'chinese'),
+    Platform('简书 Jianshu',      'https://www.jianshu.com/u/{}',               'chinese'),
+    Platform('SegmentFault 思否', 'https://segmentfault.com/u/{}',              'chinese'),
+    Platform('OSCHINA 开源中国',  'https://my.oschina.net/{}',                  'chinese'),
+    Platform('掘金 Juejin',       'https://juejin.cn/user/{}',                  'chinese'),
+    Platform('力扣 LeetCode-CN',  'https://leetcode.cn/u/{}/',                  'chinese'),
+    Platform('LOFTER',            'https://{}.lofter.com',                      'chinese'),
+    Platform('雪球 Xueqiu',       'https://xueqiu.com/n/{}',                    'chinese'),
+    Platform('即刻 Jike',         'https://web.okjike.com/u/{}',                'chinese'),
+    Platform('36氪 36Kr',         'https://www.36kr.com/user/{}',               'chinese'),
+    Platform('虎扑 Hupu',         'https://my.hupu.com/{}',                     'chinese'),
+    Platform('牛客 Nowcoder',     'https://www.nowcoder.com/users/{}',          'chinese'),
+    Platform('博客园 Cnblogs',    'https://www.cnblogs.com/{}/',                'chinese'),
+    Platform('IT之家 ITHome',     'https://my.ithome.com/{}',                   'chinese'),
 ]
 
-NOT_FOUND_PATTERNS = {
-    'GitHub':    [b'not found', b'page-404'],
-    'Pinterest': [b"sorry, we couldn't find"],
-    'Reddit':    [b'page not found', b'sorry, nobody on reddit'],
-    'Tumblr':    [b"there's nothing here"],
-    'Quora':     [b'page not found'],
-    'GitLab':    [b'page not found'],
-    'Medium':    [b'page not found'],
-}
+# 类别在输出中的显示顺序
+CATEGORY_ORDER = ['code', 'social', 'forum', 'video', 'music', 'writing', 'art', 'gaming', 'funding', 'chinese']
 
 
-def _check_username(name: str, url_template: str, username: str, timeout: float):
-    full_url = url_template.format(username)
+def _check_username(platform: 'Platform', username: str, timeout: float):
+    """检查单个平台是否存在该用户名。返回 (Platform, URL or None)。"""
+    full_url = platform.url.format(username)
     resp = safe_get(full_url, timeout=timeout, allow_redirects=True)
     if resp is None or resp.status_code != 200:
-        return name, None
+        return platform, None
     body = resp.content.lower()
-    for pattern in NOT_FOUND_PATTERNS.get(name, []):
+    for pattern in platform.not_found:
         if pattern in body:
-            return name, None
-    return name, full_url
+            return platform, None
+    return platform, full_url
 
 
 def track_username(username: str, *, max_workers: int = 10, timeout: float = 8) -> dict:
-    results: dict = {}
+    """并发扫描所有平台，返回 {platform_name: url_or_None}（按 PLATFORMS 顺序）。"""
+    found: dict = {}
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {
-            ex.submit(_check_username, name, url, username, timeout): name
-            for name, url in SOCIAL_PLATFORMS
-        }
+        futures = {ex.submit(_check_username, p, username, timeout): p for p in PLATFORMS}
         for fut in as_completed(futures):
-            name, found = fut.result()
-            results[name] = found
-    return {name: results[name] for name, _ in SOCIAL_PLATFORMS}
+            platform, url = fut.result()
+            found[platform.name] = url
+    return {p.name: found[p.name] for p in PLATFORMS}
 
 
 # ====================================================================
@@ -773,11 +905,21 @@ def print_username_results(results: dict) -> None:
     print()
     found = sum(1 for v in results.values() if v)
     print(f" {Color.Wh}{t('msg.scan_summary', total=len(results), found=found)}{Color.Reset}\n")
-    for site, url in results.items():
-        if url:
-            print(f" {Color.Wh}[ {Color.Gr}+ {Color.Wh}] {site:14}: {Color.Gr}{url}{Color.Reset}")
-        else:
-            print(f" {Color.Wh}[ {Color.Re}- {Color.Wh}] {site:14}: {Color.Ye}{t('msg.not_found')}{Color.Reset}")
+    # 按类别分组打印；保持 PLATFORMS 内部顺序
+    for cat in CATEGORY_ORDER:
+        cat_platforms = [p for p in PLATFORMS if p.category == cat]
+        if not cat_platforms:
+            continue
+        cat_found = sum(1 for p in cat_platforms if results.get(p.name))
+        cat_label = t(f'cat.{cat}')
+        print(f" {Color.Cy}┌─ {cat_label} ({cat_found}/{len(cat_platforms)}) ─{Color.Reset}")
+        for p in cat_platforms:
+            url = results.get(p.name)
+            if url:
+                print(f" {Color.Wh}[ {Color.Gr}+ {Color.Wh}] {p.name:24} {Color.Gr}{url}{Color.Reset}")
+            else:
+                print(f" {Color.Wh}[ {Color.Re}- {Color.Wh}] {p.name:24} {Color.Ye}{t('msg.not_found')}{Color.Reset}")
+        print()
 
 
 def print_whois(data: dict) -> None:

@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-63%20passed-success.svg)](tests/)
-[![Platforms](https://img.shields.io/badge/platforms-2032-orange.svg)](data/platforms.json)
+[![Platforms](https://img.shields.io/badge/platforms-2068-orange.svg)](data/platforms.json)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-安装)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
@@ -46,7 +46,7 @@
 | **使用方式** | 仅交互菜单 | 交互菜单 + **CLI 参数模式** + JSON 输出 |
 | **代码质量** | 无类型提示、无测试 | 类型注解 + **63 个 pytest 测试** + CI |
 | **国家显示** | 仅英文 | 中文映射（180+ 国家/地区） |
-| **代码量** | 316 行单文件 | 1400 行 + 63 测试 + 2020 平台数据库 |
+| **代码量** | 316 行单文件 | 1400 行 + 63 测试 + 2068 平台数据库 |
 
 ---
 
@@ -73,7 +73,7 @@
 - 12 种号码类型识别（移动 / 固话 / VoIP / 寻呼机 ...）
 
 ### 👤 用户名扫描
-- **2020 个平台**（合并 Maigret + Sherlock + WhatsMyName 三大上游）
+- **2068 个平台**（合并 Maigret + Sherlock + WhatsMyName 三大上游）
 - **46 中文圈**（陆/台/港/星/马）+ **52 西语圈**（西班牙/拉美）
 - **30-50 线程并发**，全部扫完 ~45-60 秒
 - 内容关键词 + `must_contain` 双重检测
@@ -118,7 +118,7 @@
 | [holehe](https://github.com/megadose/holehe) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 | [theHarvester](https://github.com/laramies/theHarvester) | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 | [Recon-ng](https://github.com/lanmaster53/recon-ng) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **GhostTrack-CN** | ✅ | ✅ | ✅ **(2020)** | ✅ | ✅ | ✅ | ✅ |
+| **GhostTrack-CN** | ✅ | ✅ | ✅ **(2068)** | ✅ | ✅ | ✅ | ✅ |
 
 > 💡 **定位说明**：GhostTrack-CN **不是**为了在用户名扫描深度上跟 Sherlock 卷，而是做**轻量级一站式中文工具**。
 > - 只查用户名 → Sherlock / Maigret 更专业
@@ -334,7 +334,7 @@ GhostTrack-CN/
 │   ├── CONTRIBUTING.md         # 贡献指南
 │   └── SECURITY.md             # 安全策略
 ├── data/
-│   └── platforms.json          # 2020 平台数据库（Maigret + Sherlock + WhatsMyName 合并）
+│   └── platforms.json          # 2068 平台数据库（Maigret + Sherlock + WhatsMyName 合并）
 ├── tools/
 │   └── build_platforms.py      # 平台数据库重建脚本（拉取上游最新）
 ├── tests/

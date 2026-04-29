@@ -865,6 +865,59 @@ PLATFORMS = [
     Platform('PlentyOfFish',       'https://www.pof.com/viewprofile.aspx?profile_id={}', 'adult'),
     Platform('Badoo',              'https://badoo.com/profile/{}',               'adult'),
     Platform('Tagged',             'https://www.tagged.com/{}',                  'adult'),
+
+    # ---- 成人创作者平台（OnlyFans 替代品）/ Adult creator platforms ----
+    Platform('LoyalFans',          'https://www.loyalfans.com/{}',               'adult'),
+    Platform('FanCentro',          'https://fancentro.com/{}',                   'adult'),
+    Platform('AVN Stars',          'https://avnstars.com/{}',                    'adult'),
+    Platform('IsMyGirl',           'https://ismygirl.com/{}',                    'adult'),
+    Platform('Pocket Stars',       'https://www.pocketstars.com/{}',             'adult'),
+    Platform('AdultNode',          'https://www.adultnode.com/{}',               'adult'),
+    Platform('Fanvue',             'https://www.fanvue.com/{}',                  'adult'),
+    Platform('FANBOX',             'https://www.fanbox.cc/@{}',                  'adult'),
+    Platform('Modelhub',           'https://www.modelhub.com/{}',                'adult'),
+    Platform('MV Live',            'https://www.manyvids.com/MV-Live/{}',        'adult'),
+
+    # ---- 直播 cam（更多）/ Live cam ----
+    Platform('BongaCams',          'https://bongacams.com/profile/{}',           'adult'),
+    Platform('Cherry.tv',          'https://cherry.tv/{}',                       'adult'),
+    Platform('SkyPrivate',         'https://skyprivate.com/{}',                  'adult'),
+    Platform('Streamate',          'https://streamate.com/cam/{}/',              'adult'),
+    Platform('CAM4',               'https://www.cam4.com/profile/{}',            'adult'),
+    Platform('CamSoda Models',     'https://www.camsoda.com/p/{}',               'adult'),
+    Platform('Flirt4Free',         'https://www.flirt4free.com/{}/',             'adult'),
+    Platform('xLoveCam',           'https://www.xlovecam.com/en/cam/{}',         'adult'),
+    Platform('Naked.com',          'https://naked.com/{}',                       'adult'),
+
+    # ---- 约会 / 交友（含同志）/ Dating & hookup ----
+    Platform('AdultFriendFinder',  'https://adultfriendfinder.com/profile/{}',   'adult'),
+    Platform('MeetMe',             'https://www.meetme.com/{}',                  'adult'),
+    Platform('Skout',              'https://www.skout.com/profile/{}',           'adult'),
+    Platform('Mocospace',          'https://www.mocospace.com/u/{}',             'adult'),
+    Platform('Kasidie (swinger)',  'https://www.kasidie.com/profile/{}',         'adult'),
+    Platform('SwingLifestyle',     'https://www.swinglifestyle.com/profile/{}',  'adult'),
+    Platform('Adam4Adam',          'https://www.adam4adam.com/{}',               'adult'),
+    Platform('DaddyHunt',          'https://www.daddyhunt.com/{}',               'adult'),
+    Platform('Recon',              'https://www.recon.com/{}',                   'adult'),
+    Platform('Squirt.org',         'https://www.squirt.org/users/{}',            'adult'),
+    Platform('BarebackRT',         'https://www.barebackrt.com/profile/{}',      'adult'),
+    Platform('Grommr',             'https://www.grommr.com/{}',                  'adult'),
+
+    # ---- 成人论坛 / 社区 / Adult forums & community ----
+    Platform('LPSG',               'https://www.lpsg.com/members/{}',            'adult'),
+    Platform('Eros',               'https://www.eros.com/{}',                    'adult'),
+    Platform('AVN Forum',          'https://forum.adultdvdtalk.com/users/{}',    'adult'),
+    Platform('Reddit r/gonewild',  'https://www.reddit.com/user/{}/submitted/?type=link&sort=new', 'adult'),
+    Platform('SLS Forum',          'https://www.swinglifestyle.com/forum/profile/{}/', 'adult'),
+
+    # ---- 视频 / 内容（更多）/ More video & content ----
+    Platform('SpankBang',          'https://spankbang.com/profile/{}',           'adult'),
+    Platform('Beeg Profiles',      'https://www.beeg.com/-/{}',                  'adult'),
+    Platform('YouPorn',            'https://www.youporn.com/uservids/{}/',       'adult'),
+    Platform('RedTube',            'https://www.redtube.com/users/{}',           'adult'),
+    Platform('Tube8',              'https://www.tube8.com/users/{}',             'adult'),
+    Platform('XVideos',            'https://www.xvideos.com/profiles/{}',        'adult'),
+    Platform('XNXX',               'https://www.xnxx.com/profiles/{}',           'adult'),
 ]
 
 # 类别在输出中的显示顺序

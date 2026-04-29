@@ -3407,7 +3407,7 @@
   "must_contain": [
    "user-info-section"
   ],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Proza.ru",
@@ -3927,7 +3927,7 @@
   "url": "https://www.meetme.com/{}",
   "not_found": [],
   "must_contain": [],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "mastodon.social",
@@ -5902,7 +5902,7 @@
   "must_contain": [
    "<title>  User"
   ],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Monkeytype",
@@ -8757,7 +8757,7 @@
   "must_contain": [
    "FanCentro</title>"
   ],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Fansly",
@@ -13595,7 +13595,7 @@
    "Join Your Favorite Adult Stars"
   ],
   "must_contain": [],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Pornhub",
@@ -16348,7 +16348,7 @@
   "must_contain": [
    "<title>MeetMe - Chat and Meet New People</title"
   ],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Meta-Wiki (Wikimedia)",
@@ -17889,7 +17889,7 @@
   "must_contain": [
    "<title>Page not found"
   ],
-  "category": "other"
+  "category": "adult"
  },
  {
   "name": "Twitter archived profile",

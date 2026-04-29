@@ -86,17 +86,42 @@ SPANISH_KEYWORDS = [
 
 # 成人 / 约会 / 性内容平台关键词（优先于其它分类）
 ADULT_KEYWORDS = [
-    "porn", "xxx", "xvideos", "xnxx", "redtube", "youporn", "tube8",
+    # 通用
+    "porn", "xxx", "nsfw", "adult", "erotic", "fetish", "kink",
+    # 视频站
+    "xvideos", "xnxx", "redtube", "youporn", "tube8", "spankbang",
+    "pornhub", "xhamster", "beeg", "txxx", "drtuber", "eporner",
+    "xtube", "thumbzilla", "porntrex", "pornone", "anyporn",
+    # 创作者
     "onlyfans", "fansly", "manyvids", "justforfans", "admireme",
-    "fetlife", "kinkly", "alt.com", "fetster",
+    "loyalfans", "fancentro", "avnstars", "ismygirl", "pocketstars",
+    "adultnode", "fanvue", "modelhub", "scrileconnect",
+    # cam
     "chaturbate", "stripchat", "myfreecams", "bongacams", "livejasmin",
-    "cam4", "camsoda", "flirt4free",
-    "adult", "nsfw", "hookup", "fling", "naughty",
+    "cam4", "camsoda", "flirt4free", "skyprivate", "streamate",
+    "imlive", "ifriends", "xlovecam", "cherry.tv", "cammodels",
+    # 社区/论坛
+    "fetlife", "kinkly", "alt.com", "fetster", "lpsg",
+    "literotica", "asstr", "f95zone", "rule34", "e621", "e926",
+    "rule34.xxx", "gelbooru", "danbooru",
+    # 约会
     "ashleymadison", "adultfriendfinder", "ohlala", "iamnaughty",
+    "hookup", "fling", "naughty",
     "tinder", "bumble", "hinge", "okcupid", "match.com", "pof.com",
-    "plentyoffish", "tagged.com", "badoo", "grindr", "scruff",
+    "plentyoffish", "tagged.com", "badoo", "meetme", "skout",
+    "mocospace", "kasidie", "swinglifestyle",
+    # 同志
+    "grindr", "scruff", "adam4adam", "daddyhunt", "recon",
+    "squirt.org", "barebackrt", "manhunt", "grommr",
     "her.app", "feeld", "happn", "coffeemeetsbagel",
-    "literotica", "asstr", "f95zone", "rule34",
+    # 异国成人
+    "fanbox", "dlsite", "fantia",
+    # 同性恋约会
+    "gaydar", "gay.com", "lpsg.com",
+    # 妓女/陪伴
+    "eros.com", "tryst", "switter", "switter.at",
+    # 中文/日韩
+    "91porn", "1024",
 ]
 
 # 主题分类（仅在区域判定后兜底使用）

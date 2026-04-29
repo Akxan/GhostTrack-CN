@@ -3,6 +3,12 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
 out/
 results/
 .DS_Store

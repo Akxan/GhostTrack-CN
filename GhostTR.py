@@ -695,6 +695,7 @@ class Platform(NamedTuple):
     category: str             # 用于分组显示，见 CATEGORY_ORDER
     not_found: tuple = ()     # 字节模式列表，命中其中之一即视为「未找到」
     must_contain: tuple = ()  # 字节模式列表，至少命中一个才视为「找到」（更严格的检测）
+    regex_check: str = ''     # Sherlock 风格：username 必须匹配此正则才发请求；不匹配 = invalid
 
 
 PLATFORMS = [
@@ -998,6 +999,7 @@ def _load_platforms_json(path: str) -> list:
                 category=item.get('category', 'other'),
                 not_found=_clean_patterns(item.get('not_found')),
                 must_contain=_clean_patterns(item.get('must_contain')),
+                regex_check=item.get('regex_check') or '',
             ))
         except (KeyError, TypeError):
             continue
@@ -1037,50 +1039,97 @@ def _merge_platforms(curated: list, extended: list) -> list:
 PLATFORMS = _merge_platforms(_dedup_platforms(PLATFORMS), _load_platforms_json(_PLATFORMS_JSON))
 
 
-def _check_username(platform: 'Platform', username: str, timeout: float):
-    """检查单个平台是否存在该用户名。返回 (Platform, URL or None)。
-    任何 URL 模板异常（IndexError/KeyError/ValueError）都视为该平台不可用。
+# WAF / CDN 拦截指纹（Sherlock-inspired）
+# 命中 = 该平台被反爬墙拦了，结果不可信；标记 'waf' 而非「找到/未找到」
+WAF_FINGERPRINTS = (
+    b'cloudflare',
+    b'cf-ray',
+    b'just a moment',          # Cloudflare 5s 挑战页面标志
+    b'enable javascript and cookies',
+    b'attention required',
+    b'aws-waf-token',
+    b'awswafcaptcha',
+    b'perimeterx',
+    b'_pxhd',
+    b'access denied',
+    b'datadome',
+    b'<title>access denied</title>',
+)
 
-    优化（Sherlock-inspired）:
-    - 没有 body-级检测模式时（needs_body=False）→ HEAD 请求，跳过 body 下载
-    - 有 body 检测时 → stream=True 只读前 64 KB（绝大多数 not_found/must_contain
-      模式都在页面前半段；省下 1-5 MB 的下载和解析）
+
+def _detect_waf(body: bytes) -> bool:
+    """检查响应体前 8KB 是否含已知 WAF 指纹。"""
+    sample = body[:8192].lower()
+    return any(fp in sample for fp in WAF_FINGERPRINTS)
+
+
+# _check_username 返回 status 取值
+STATUS_FOUND = 'found'
+STATUS_NOT_FOUND = 'not_found'
+STATUS_WAF = 'waf'                    # 被 CDN/反爬墙拦了，结果不可信
+STATUS_INVALID_USERNAME = 'invalid'   # 用户名不符合该平台 regex 规则
+STATUS_NETWORK_ERROR = 'network_err'  # 超时/连接失败
+
+
+def _check_username(platform: 'Platform', username: str, timeout: float):
+    """检查单个平台是否存在该用户名。返回 (Platform, URL or None, status)。
+
+    Sherlock-inspired 优化:
+    1. **regex_check 预过滤**：username 不符合平台规则 → 跳过 HTTP，节省时间
+    2. **HEAD 请求**：仅检测 status_code 的平台跳过 body 下载
+    3. **stream + 64KB 读取**：需 body 检测的只读前 64 KB
+    4. **WAF 检测**：识别 Cloudflare/AWS WAF 等拦截，避免误报
     """
+    # ---- 1. URL 模板与 regex 预过滤（不发请求）----
     try:
         full_url = platform.url.format(username)
     except (IndexError, KeyError, ValueError):
-        # ValueError 覆盖 str.format 的格式串错误（如 '{:d}'、'{0!q}' 等）
-        return platform, None
+        return platform, None, STATUS_INVALID_USERNAME
+
+    if platform.regex_check:
+        try:
+            if not re.search(platform.regex_check, username):
+                return platform, None, STATUS_INVALID_USERNAME
+        except re.error:
+            pass  # 模式本身坏了，忽略 regex 检查继续
 
     needs_body = bool(platform.not_found) or bool(platform.must_contain)
-    if not needs_body:
-        # 仅检查 status_code → HEAD 即可
-        resp = safe_get(full_url, timeout=timeout, method='HEAD', allow_redirects=True)
-        if resp is None or resp.status_code != 200:
-            return platform, None
-        return platform, full_url
 
-    # 需要 body：stream=True，只读前 64 KB
+    # ---- 2a. 不需要 body → HEAD ----
+    if not needs_body:
+        resp = safe_get(full_url, timeout=timeout, method='HEAD', allow_redirects=True)
+        if resp is None:
+            return platform, None, STATUS_NETWORK_ERROR
+        if resp.status_code != 200:
+            return platform, None, STATUS_NOT_FOUND
+        return platform, full_url, STATUS_FOUND
+
+    # ---- 2b. 需要 body → stream + 只读前 64KB ----
     resp = safe_get(full_url, timeout=timeout, stream=True, allow_redirects=True)
-    if resp is None or resp.status_code != 200:
-        if resp is not None:
-            resp.close()
-        return platform, None
+    if resp is None:
+        return platform, None, STATUS_NETWORK_ERROR
+    if resp.status_code != 200:
+        resp.close()
+        return platform, None, STATUS_NOT_FOUND
     try:
         body = resp.raw.read(65536, decode_content=True).lower()
     except Exception:
-        return platform, None
+        return platform, None, STATUS_NETWORK_ERROR
     finally:
         resp.close()
-    # 检查「未找到」模式
+
+    # ---- 3. WAF 检测（在 not_found / must_contain 之前）----
+    if _detect_waf(body):
+        return platform, None, STATUS_WAF
+
+    # ---- 4. 平台特定检测 ----
     for pattern in platform.not_found:
         if pattern in body:
-            return platform, None
-    # 如果定义了「必须包含」模式，至少命中一个才算找到
+            return platform, None, STATUS_NOT_FOUND
     if platform.must_contain:
         if not any(pat in body for pat in platform.must_contain):
-            return platform, None
-    return platform, full_url
+            return platform, None, STATUS_NOT_FOUND
+    return platform, full_url, STATUS_FOUND
 
 
 def _print_scan_progress(done: int, total: int, found_count: int) -> None:
@@ -1148,6 +1197,7 @@ def track_username(username: str, *, max_workers: int = 100, timeout: float = 5,
     else:
         platforms_to_scan = PLATFORMS
     found: dict = {}
+    statuses: dict = {}  # name → STATUS_*
     total = len(platforms_to_scan)
     found_count = 0
     done = 0
@@ -1155,11 +1205,13 @@ def track_username(username: str, *, max_workers: int = 100, timeout: float = 5,
         futures = {ex.submit(_check_username, p, username, timeout): p for p in platforms_to_scan}
         for fut in as_completed(futures):
             try:
-                platform, url = fut.result()
+                platform, url, status = fut.result()
             except Exception:
                 platform = futures[fut]
                 url = None
+                status = STATUS_NETWORK_ERROR
             found[platform.name] = url
+            statuses[platform.name] = status
             done += 1
             if url:
                 found_count += 1
@@ -1168,7 +1220,10 @@ def track_username(username: str, *, max_workers: int = 100, timeout: float = 5,
     if show_progress:
         _clear_progress_line()
     # 保持 PLATFORMS 内部顺序；未扫描的平台不出现在结果里
-    return {p.name: found[p.name] for p in platforms_to_scan if p.name in found}
+    results = {p.name: found[p.name] for p in platforms_to_scan if p.name in found}
+    # 统计信息存到私有 key（_ 开头），打印/保存函数会跳过
+    results['_statuses'] = {p.name: statuses[p.name] for p in platforms_to_scan if p.name in statuses}
+    return results
 
 
 # ====================================================================
@@ -1314,14 +1369,34 @@ def print_phone_info(data: dict) -> None:
     print_field(t('field.number_type'),    data['number_type'],   width=22)
 
 
+def _platform_only(d: dict) -> dict:
+    """从 track_username 返回的 dict 中只取出平台名→URL 项（跳过 _statuses 等私有 key）。"""
+    return {k: v for k, v in d.items() if not k.startswith('_')}
+
+
 def print_username_results(results: dict, show_all: bool = False) -> None:
     print(f"\n {Color.Wh}========== {Color.Gr}{t('section.username')} {Color.Wh}==========")
     print()
     if isinstance(results, dict) and '_error' in results:
         print(f" {Color.Re}{t('err.query_failed', msg=results['_error'])}{Color.Reset}")
         return
-    found = sum(1 for v in results.values() if v)
-    print(f" {Color.Wh}{t('msg.scan_summary', total=len(results), found=found)}{Color.Reset}")
+    statuses = results.get('_statuses', {}) if isinstance(results, dict) else {}
+    plat_results = _platform_only(results)
+    found = sum(1 for v in plat_results.values() if v)
+    print(f" {Color.Wh}{t('msg.scan_summary', total=len(plat_results), found=found)}{Color.Reset}")
+    # 打印 status 摘要（WAF / invalid / 网络错误）—— 让用户知道结果可信度
+    if statuses:
+        from collections import Counter as _Counter
+        status_counts = _Counter(statuses.values())
+        notes = []
+        if status_counts.get(STATUS_WAF, 0):
+            notes.append(f"{Color.Mage}{status_counts[STATUS_WAF]} WAF-blocked{Color.Reset}")
+        if status_counts.get(STATUS_INVALID_USERNAME, 0):
+            notes.append(f"{Color.Bl}{status_counts[STATUS_INVALID_USERNAME]} skipped (regex){Color.Reset}")
+        if status_counts.get(STATUS_NETWORK_ERROR, 0):
+            notes.append(f"{Color.Re}{status_counts[STATUS_NETWORK_ERROR]} network errors{Color.Reset}")
+        if notes:
+            print(f" {Color.Ye}[ note ] {Color.Reset}" + "  ·  ".join(notes))
     if not show_all:
         print(f" {Color.Bl}{Color.Ye}{t('msg.show_all_hint')}{Color.Reset}")
     print()
@@ -1330,10 +1405,10 @@ def print_username_results(results: dict, show_all: bool = False) -> None:
     def _confidence(p):
         return (2 if p.must_contain else 0) + (1 if p.not_found else 0)
     for cat in CATEGORY_ORDER:
-        cat_platforms = [p for p in PLATFORMS if p.category == cat and p.name in results]
+        cat_platforms = [p for p in PLATFORMS if p.category == cat and p.name in plat_results]
         if not cat_platforms:
             continue
-        cat_found_list = [p for p in cat_platforms if results.get(p.name)]
+        cat_found_list = [p for p in cat_platforms if plat_results.get(p.name)]
         # 命中的按可信度降序排（高可信优先 → 真实用户更可能在这）
         cat_found_list.sort(key=lambda p: (-_confidence(p), p.name))
         cat_found = len(cat_found_list)
@@ -1349,14 +1424,22 @@ def print_username_results(results: dict, show_all: bool = False) -> None:
         else:
             platforms_to_show = cat_found_list
         for p in platforms_to_show:
-            url = results.get(p.name)
+            url = plat_results.get(p.name)
             # 置信度标记：★★★ = must_contain, ★★ = not_found, ★ = 仅 HTTP 200
             conf = _confidence(p)
             badge = '★★★' if conf >= 2 else ('★★' if conf == 1 else '★  ')
             if url:
                 print(f" {Color.Wh}[ {Color.Gr}+ {Color.Wh}] {Color.Mage}{badge}{Color.Wh} {p.name:28} {Color.Gr}{url}{Color.Reset}")
             else:
-                print(f" {Color.Wh}[ {Color.Re}- {Color.Wh}] {Color.Bl}{badge}{Color.Wh} {p.name:28} {Color.Ye}{t('msg.not_found')}{Color.Reset}")
+                # 区分「未找到」「WAF 拦截」「无效用户名」
+                p_status = statuses.get(p.name, STATUS_NOT_FOUND)
+                if p_status == STATUS_WAF:
+                    note = f"{Color.Mage}[ WAF blocked ]{Color.Reset}"
+                elif p_status == STATUS_INVALID_USERNAME:
+                    note = f"{Color.Bl}[ skipped ]{Color.Reset}"
+                else:
+                    note = f"{Color.Ye}{t('msg.not_found')}"
+                print(f" {Color.Wh}[ {Color.Re}- {Color.Wh}] {Color.Bl}{badge}{Color.Wh} {p.name:28} {note}{Color.Reset}")
         print()
 
 
@@ -1601,14 +1684,15 @@ def _to_markdown(prefix: str, data: Any) -> str:
         return '\n'.join(lines)
 
     if cmd == 'username' and isinstance(data, dict):
-        found = sum(1 for v in data.values() if v)
+        plat = _platform_only(data)
+        found = sum(1 for v in plat.values() if v)
         lines.append(f"## Username scan: `{query}`")
         lines.append("")
-        lines.append(f"**Scanned {len(data)} platforms · Found {found} accounts**")
+        lines.append(f"**Scanned {len(plat)} platforms · Found {found} accounts**")
         lines.append("")
         for cat in CATEGORY_ORDER:
-            cat_pl = [p for p in PLATFORMS if p.category == cat and p.name in data]
-            cat_found = [(p, data[p.name]) for p in cat_pl if data[p.name]]
+            cat_pl = [p for p in PLATFORMS if p.category == cat and p.name in plat]
+            cat_found = [(p, plat[p.name]) for p in cat_pl if plat[p.name]]
             if not cat_found:
                 continue
             lines.append(f"### {_md_escape(cat.title())} ({len(cat_found)}/{len(cat_pl)})")
@@ -1885,8 +1969,9 @@ def _record_history(cmd: str, args: argparse.Namespace, data: Any) -> None:
     elif cmd == 'phone':
         summary = {'number': args.number, 'ok': '_error' not in data}
     elif cmd == 'user':
-        found = sum(1 for v in data.values() if v)
-        summary = {'username': args.username, 'scanned': len(data), 'found': found}
+        plat = _platform_only(data)
+        found = sum(1 for v in plat.values() if v)
+        summary = {'username': args.username, 'scanned': len(plat), 'found': found}
     elif cmd == 'whois':
         summary = {'domains': args.domains}
     elif cmd == 'mx':

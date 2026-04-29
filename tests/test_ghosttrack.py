@@ -182,14 +182,14 @@ class TestCheckUsername:
     def test_found(self):
         fake = MagicMock(status_code=200, content=b'<html>real profile</html>')
         with patch.object(gt, 'safe_get', return_value=fake):
-            p, url = gt._check_username(self._make_platform(), 'user', 5)
+            p, url, _ = gt._check_username(self._make_platform(), 'user', 5)
         assert p.name == 'GitHub'
         assert url == 'https://github.com/user'
 
     def test_404(self):
         fake = MagicMock(status_code=404)
         with patch.object(gt, 'safe_get', return_value=fake):
-            p, url = gt._check_username(self._make_platform(), 'x', 5)
+            p, url, _ = gt._check_username(self._make_platform(), 'x', 5)
         assert url is None
 
     def test_content_pattern_says_not_found(self):
@@ -197,12 +197,12 @@ class TestCheckUsername:
         fake = MagicMock(status_code=200)
         fake.raw.read.return_value = b'<title>Page not found</title>'
         with patch.object(gt, 'safe_get', return_value=fake):
-            p, url = gt._check_username(self._make_platform((b'page not found',)), 'x', 5)
+            p, url, _ = gt._check_username(self._make_platform((b'page not found',)), 'x', 5)
         assert url is None
 
     def test_network_error(self):
         with patch.object(gt, 'safe_get', return_value=None):
-            p, url = gt._check_username(self._make_platform(), 'u', 5)
+            p, url, _ = gt._check_username(self._make_platform(), 'u', 5)
         assert url is None
 
     def test_empty_username_no_network_call(self):
@@ -222,7 +222,7 @@ class TestCheckUsername:
         """str.format 的格式串错误（'{:d}' 等）必须被吞掉，不能崩溃。"""
         bad_platform = gt.Platform('BadFmt', 'https://x.com/{:d}', 'code')
         # 不需要 mock safe_get — 应在 .format() 处早返回
-        p, url = gt._check_username(bad_platform, 'alice', 5)
+        p, url, _ = gt._check_username(bad_platform, 'alice', 5)
         assert url is None
         assert p.name == 'BadFmt'
 
@@ -233,8 +233,9 @@ class TestCheckUsername:
             results = gt.track_username('alice', max_workers=5)
         # 必须返回正常的 dict，所有平台都是 None（因为全部失败）
         assert isinstance(results, dict)
-        assert len(results) == len(gt.PLATFORMS)
-        assert all(v is None for v in results.values())
+        plat = gt._platform_only(results)
+        assert len(plat) == len(gt.PLATFORMS)
+        assert all(v is None for v in plat.values())
 
     def test_track_username_clamps_zero_workers(self):
         """传入 max_workers=0 不应崩溃。"""
@@ -261,9 +262,10 @@ class TestCheckUsername:
         with patch.object(gt, 'safe_get', return_value=None):
             results = gt.track_username('x', categories=['code'])
         assert '_error' not in results
-        # 应只扫 code 类别的平台
+        # 应只扫 code 类别的平台（filter out _statuses 等私有 key）
         code_count = sum(1 for p in gt.PLATFORMS if p.category == 'code')
-        assert len(results) == code_count
+        plat = gt._platform_only(results)
+        assert len(plat) == code_count
 
 
 class TestPlatformDedup:
@@ -372,6 +374,82 @@ class TestSession:
         s = gt._get_session()
         assert 'User-Agent' in s.headers
         assert 'Mozilla' in s.headers['User-Agent']
+
+
+class TestRegexCheck:
+    """Sherlock-inspired: regex pre-filter 跳过不可能的平台。"""
+
+    def test_regex_mismatch_skips_network(self):
+        """username 不匹配 regex → 不发请求，返回 invalid 状态。"""
+        p = gt.Platform('Strict', 'https://x.com/{}', 'code',
+                         regex_check=r'^[a-z]{1,5}$')  # 只允许 1-5 个小写字母
+        with patch.object(gt, 'safe_get') as mock_get:
+            plat, url, status = gt._check_username(p, 'TOO_LONG_USERNAME', 5)
+        assert mock_get.call_count == 0  # 完全跳过网络
+        assert url is None
+        assert status == gt.STATUS_INVALID_USERNAME
+
+    def test_regex_match_proceeds(self):
+        """username 匹配 regex → 正常发请求。"""
+        p = gt.Platform('Strict', 'https://x.com/{}', 'code',
+                         regex_check=r'^[a-z]+$')
+        fake = MagicMock(status_code=200)
+        with patch.object(gt, 'safe_get', return_value=fake):
+            plat, url, status = gt._check_username(p, 'alice', 5)
+        assert status == gt.STATUS_FOUND
+
+    def test_malformed_regex_does_not_crash(self):
+        """坏的 regex 模式应被忽略，正常发请求。"""
+        p = gt.Platform('Bad', 'https://x.com/{}', 'code',
+                         regex_check=r'[invalid(regex')
+        fake = MagicMock(status_code=200)
+        with patch.object(gt, 'safe_get', return_value=fake):
+            plat, url, status = gt._check_username(p, 'anyone', 5)
+        # 应不崩，照常出结果
+        assert status == gt.STATUS_FOUND
+
+    def test_no_regex_means_no_filter(self):
+        """regex_check 为空字符串时不做过滤。"""
+        p = gt.Platform('NoRegex', 'https://x.com/{}', 'code', regex_check='')
+        fake = MagicMock(status_code=200)
+        with patch.object(gt, 'safe_get', return_value=fake):
+            plat, url, status = gt._check_username(p, 'whatever_user_name', 5)
+        assert status == gt.STATUS_FOUND
+
+
+class TestWAFDetection:
+    """Sherlock-inspired: WAF 拦截识别。"""
+
+    def test_cloudflare_block_detected(self):
+        body = b'<html><title>Just a moment...</title>cf-ray: abc</html>'
+        assert gt._detect_waf(body) is True
+
+    def test_aws_waf_detected(self):
+        body = b'<html>aws-waf-token: xxx</html>'
+        assert gt._detect_waf(body) is True
+
+    def test_perimeterx_detected(self):
+        body = b'<html>blocked by perimeterx</html>'
+        assert gt._detect_waf(body) is True
+
+    def test_normal_content_not_flagged(self):
+        body = b'<html><title>Real Profile</title>Welcome user!</html>'
+        assert gt._detect_waf(body) is False
+
+    def test_only_first_8kb_checked(self):
+        # WAF 标志藏在 9000 字节后 → 不应被检测
+        body = b'X' * 9000 + b'cloudflare'
+        assert gt._detect_waf(body) is False
+
+    def test_waf_in_check_username_returns_waf_status(self):
+        p = gt.Platform('Test', 'https://x.com/{}', 'code',
+                         not_found=(b'no such user',))
+        fake = MagicMock(status_code=200)
+        fake.raw.read.return_value = b'<title>Just a moment</title>cf-ray: 123'
+        with patch.object(gt, 'safe_get', return_value=fake):
+            plat, url, status = gt._check_username(p, 'alice', 5)
+        assert status == gt.STATUS_WAF
+        assert url is None  # WAF 拦截 = 不报「找到」
 
     def test_platforms_count_meets_target(self):
         """对标 Maigret + Sherlock + WhatsMyName 合并，至少 2000 个平台。"""

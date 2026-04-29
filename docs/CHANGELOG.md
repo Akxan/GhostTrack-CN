@@ -17,7 +17,37 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
 
-## [1.2.1] — 2026-04-29
+## [1.2.2] — 2026-04-29
+
+整合剩下的 Sherlock 核心思路：**`regex_check` 预过滤** + **WAF 检测**。结果更准确、对反爬墙透明、对无效 username 不浪费请求。
+
+### ✨ Added — Sherlock 完整体
+
+- **🎯 `regex_check` 预过滤**（Sherlock 风格）—— `Platform` NamedTuple 新增 `regex_check` 字段。88 个主流平台（Twitter/Facebook/YouTube/...）从 Sherlock + Maigret 上游提取了用户名规则正则。当 username 不符合时**直接跳过 HTTP 请求**，不浪费时间不打扰目标服务器
+  - 实测：含空格的 username `"joe smith"` 在 `--quick` 模式下跳过 18 个平台
+- **🛡 WAF / CDN 拦截识别** —— 新增 `_detect_waf()` 检测 Cloudflare / AWS WAF / PerimeterX / DataDome 等反爬墙。被拦截的平台**不再误报为「找到」**，而是标记 `WAF blocked` 单独显示
+  - 实测：扫 torvalds 时检测到 8-9 个 Cloudflare 拦截
+- **📊 状态透明化** —— `_check_username` 返回 5 种状态：`found` / `not_found` / `waf` / `invalid` / `network_err`
+- **`[ note ]` 摘要行** —— 扫描结果顶部显示「N WAF-blocked · M skipped (regex) · K network errors」让用户知道结果可信度
+- **未找到细分显示** —— 之前所有 miss 都写「未找到」，现在区分：
+  - 普通未找到：`未找到`
+  - 反爬墙拦截：`[ WAF blocked ]`（紫色）
+  - regex 不符：`[ skipped ]`（暗色）
+
+### 🚀 Changed 改进
+
+- `tools/build_platforms.py` 现在从 Sherlock + Maigret 数据中提取 `regexCheck`（88 个平台命中）
+- `track_username` 返回 dict 中附加 `_statuses` 私有 key（不影响公开 API）
+- `_platform_only(d)` 辅助函数过滤私有 key，所有 iteration 自动跳过
+
+### 🧪 Tests
+
+- 83 → **93 测试**（新增 10 个 regex / WAF / status 相关测试）
+- 静态分析全部通过：ruff / mypy / bandit
+
+---
+
+## [1.2.1] — 2026-04-29 (deprecated, replaced by 1.2.2)
 
 经过 5 路独立审计（ruff + mypy + bandit + pytest-cov + superpowers:code-reviewer agent）发现并修复 v1.2.0 的 6 个 P1 真 bug + 借鉴 Sherlock 优化思路，**用户名扫描速度翻倍（45s → 21s, 2.1×）**。
 
@@ -261,7 +291,8 @@ OSINT 信息检索能力大幅扩展。从 113 个手工 curated 平台跃升至
 
 ---
 
-[Unreleased]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.1...v1.2.1
 [1.2.0]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.0...v1.1.1

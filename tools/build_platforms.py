@@ -239,7 +239,7 @@ def fetch(url: str) -> dict:
 
 
 def parse_maigret(raw: dict) -> list:
-    """Maigret 格式：{name: {url, urlMain, absenceStrs, presenseStrs, disabled, isNSFW, ...}}"""
+    """Maigret 格式：{name: {url, urlMain, absenceStrs, presenseStrs, disabled, isNSFW, regexCheck, ...}}"""
     sites = raw.get("sites", raw)
     out = []
     for name, info in sites.items():
@@ -249,17 +249,19 @@ def parse_maigret(raw: dict) -> list:
         url = info.get("url", "")
         if "{username}" not in url and "{}" not in url:
             continue
+        regex = info.get("regexCheck") or ""
         out.append({
             "name": name,
             "url": normalize_url(url),
             "not_found": [s for s in (info.get("absenceStrs") or []) if isinstance(s, str)][:3],
             "must_contain": [s for s in (info.get("presenseStrs") or []) if isinstance(s, str)][:3],
+            "regex_check": regex if isinstance(regex, str) else "",
         })
     return out
 
 
 def parse_sherlock(raw: dict) -> list:
-    """Sherlock 格式：{name: {url, urlMain, errorMsg, errorType, ...}}"""
+    """Sherlock 格式：{name: {url, urlMain, errorMsg, errorType, regexCheck, ...}}"""
     out = []
     for name, info in raw.items():
         if not isinstance(info, dict):
@@ -273,11 +275,13 @@ def parse_sherlock(raw: dict) -> list:
             not_found = [em]
         elif isinstance(em, list):
             not_found = [s for s in em if isinstance(s, str)][:3]
+        regex = info.get("regexCheck") or ""
         out.append({
             "name": name,
             "url": normalize_url(url),
             "not_found": not_found,
             "must_contain": [],
+            "regex_check": regex if isinstance(regex, str) else "",
         })
     return out
 
@@ -357,6 +361,8 @@ def build():
     for item in merged:
         item["category"] = categorize(item["name"], item["url"])
         item.pop("_source", None)
+        # 确保 regex_check 字段存在（从 parse_wmn 出来的没有）
+        item.setdefault("regex_check", "")
 
     by_cat = Counter(p["category"] for p in merged)
     print("  by category:")

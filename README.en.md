@@ -302,8 +302,6 @@ SpyEyes/
 │   ├── CHANGELOG.md            # Version history
 │   ├── CONTRIBUTING.md         # Contribution guide
 │   └── SECURITY.md             # Security policy
-├── data/
-│   └── platforms.json          # 2067-platform database (Maigret + Sherlock + WhatsMyName)
 ├── tools/
 │   └── build_platforms.py      # Refresh platform DB (atomic write + retries)
 ├── tests/

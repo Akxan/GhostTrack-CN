@@ -347,8 +347,6 @@ SpyEyes/
 │   ├── CHANGELOG.md            # 版本更新日志
 │   ├── CONTRIBUTING.md         # 贡献指南
 │   └── SECURITY.md             # 安全策略
-├── data/
-│   └── platforms.json          # 2067 平台数据库（Maigret + Sherlock + WhatsMyName 合并）
 ├── tools/
 │   └── build_platforms.py      # 平台数据库重建脚本（拉取上游最新，原子写 + 重试）
 ├── tests/

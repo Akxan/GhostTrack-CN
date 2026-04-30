@@ -42,7 +42,7 @@ def reset_global_state(tmp_path, monkeypatch):
         for k, v in saved_color.items():
             setattr(gt.Color, k, v)
         # 强制 reset 为 None 让下个测试触发干净懒加载（避免依赖测试执行顺序）
-        # 性能影响可忽略：_load_platforms_json ~50ms × 248 测试 = ~12s 可接受
+        # 性能影响可忽略：_load_platforms_json ~50ms × 260+ 测试 = ~13s 可接受
         # 实际不会每次都触发 —— 大多测试不访问 PLATFORMS
         gt._PLATFORMS_CACHE = None
         if hasattr(gt._thread_local, 'session'):

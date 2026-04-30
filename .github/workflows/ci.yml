@@ -29,9 +29,9 @@ jobs:
       - name: ruff
         run: ruff check .
       - name: mypy
-        run: mypy spyeyes.py tools/build_platforms.py --ignore-missing-imports
+        run: mypy spyeyes tools/build_platforms.py --ignore-missing-imports
       - name: bandit
-        run: bandit -r spyeyes.py tools/ -ll
+        run: bandit -r spyeyes/ tools/ -ll
 
   test:
     name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
@@ -66,13 +66,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Install package (PyPI smoke test)
+        # 验证 pip install . 真能 work：pyproject.toml 配置正确 + entry_points 注册
+        run: |
+          pip install -e .
+          spyeyes --version
+          python -m spyeyes --version
+
       - name: Run pytest
         # --cov=spyeyes 替代 --cov=. 避免把 .venv/.mypy_cache 纳入覆盖率
         # --timeout=15 防纯 Python 死循环卡死 CI（注意：thread 方法对 C 扩展
         #   阻塞如 re 模块 catastrophic backtracking 无效；ReDoS 实际靠
         #   MAX_USERNAME_LENGTH=64 输入限制 + 删除 _REDOS_RE 启发式后简化的设计）
-        # --timeout-method=thread: 显式 thread 保跨平台一致；POSIX 默认 SIGALRM
-        #   可能与某些测试库交互，Windows 自动回退 thread —— 显式 thread 消除歧义
+        # --timeout-method=thread: 显式 thread 保跨平台一致
         run: pytest tests/ -v --cov=spyeyes --cov-report=term --cov-report=xml --timeout=15 --timeout-method=thread
 
       - name: Upload coverage to Codecov

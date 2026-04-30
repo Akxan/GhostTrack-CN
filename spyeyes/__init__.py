@@ -2204,18 +2204,18 @@ def build_parser() -> argparse.ArgumentParser:
         parents=[common],
         description=f'SpyEyes {__version__} —— OSINT toolkit (bilingual: zh/en)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""Examples / 示例:
-  python3 spyeyes.py                          # Interactive menu / 交互菜单
-  python3 spyeyes.py --lang en                # Force English UI / 强制英文界面
-  python3 spyeyes.py ip 8.8.8.8               # IP lookup
-  python3 spyeyes.py myip --lang en           # English JSON
-  python3 spyeyes.py phone +12025550100       # Phone parse
-  python3 spyeyes.py user torvalds            # Username scan
-  python3 spyeyes.py whois example.com        # WHOIS
-  python3 spyeyes.py mx gmail.com             # MX records
-  python3 spyeyes.py email a@b.com            # Email validate
-  python3 spyeyes.py ip 8.8.8.8 --json        # JSON output
-  python3 spyeyes.py ip 8.8.8.8 --save out/   # Save to file
+        epilog="""Examples / 示例 (after `pip install .` use `spyeyes ...` directly):
+  python3 -m spyeyes                          # Interactive menu / 交互菜单
+  python3 -m spyeyes --lang en                # Force English UI / 强制英文界面
+  python3 -m spyeyes ip 8.8.8.8               # IP lookup
+  python3 -m spyeyes myip --lang en           # English JSON
+  python3 -m spyeyes phone +12025550100       # Phone parse
+  python3 -m spyeyes user torvalds            # Username scan
+  python3 -m spyeyes whois example.com        # WHOIS
+  python3 -m spyeyes mx gmail.com             # MX records
+  python3 -m spyeyes email a@b.com            # Email validate
+  python3 -m spyeyes ip 8.8.8.8 --json        # JSON output
+  python3 -m spyeyes ip 8.8.8.8 --save out/   # Save to file
 """,
     )
 

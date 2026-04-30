@@ -1409,20 +1409,28 @@ def whois_lookup(domain: str) -> dict:
 
 
 def mx_lookup(domain: str) -> dict:
+    """查询 MX 记录。
+    成功: {'domain': str, 'records': [{'preference': int, 'exchange': str}, ...]}
+    失败: {'_error': i18n_msg, '_error_kind': MX_ERR_*}
+        _error_kind 是稳定枚举供调用方判断（避免 substring 误匹配 i18n msg）
+    """
     if not HAS_DNS:
-        return {'_error': t('err.no_dns')}
+        return {'_error': t('err.no_dns'), '_error_kind': MX_ERR_NO_DNS_DEP}
     normalized = _normalize_domain(domain)
     if normalized is None:
-        return {'_error': t('err.invalid_domain', domain=(domain or '').strip()[:80])}
+        return {'_error': t('err.invalid_domain', domain=(domain or '').strip()[:80]),
+                '_error_kind': MX_ERR_INVALID_DOMAIN}
     domain = normalized
     try:
         answers = dns.resolver.resolve(domain, 'MX')
     except dns.resolver.NXDOMAIN:
-        return {'_error': t('err.nxdomain', domain=domain)}
+        return {'_error': t('err.nxdomain', domain=domain), '_error_kind': MX_ERR_NXDOMAIN}
     except dns.resolver.NoAnswer:
-        return {'_error': t('err.no_mx', domain=domain)}
+        return {'_error': t('err.no_mx', domain=domain), '_error_kind': MX_ERR_NO_MX}
     except Exception as e:
-        return {'_error': t('err.dns_failed', e=e)}
+        # NoNameservers / Timeout / 等都归到 dns_failed —— 不要让 message
+        # 内部细节（server IP / 解析栈）泄漏到 _error_kind 决策
+        return {'_error': t('err.dns_failed', e=e), '_error_kind': MX_ERR_DNS_FAILED}
     records = sorted(
         [{'preference': r.preference, 'exchange': str(r.exchange).rstrip('.')} for r in answers],
         key=lambda r: r['preference'],
@@ -1430,19 +1438,41 @@ def mx_lookup(domain: str) -> dict:
     return {'domain': domain, 'records': records}
 
 
-EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$')
+# Email 本地部分：ASCII；domain 部分允许 IDN（先转 punycode 再校验）
+EMAIL_RE = re.compile(r"^([A-Za-z0-9._%+\-']+)@([\w.\-¡-￿]+\.[\w\-¡-￿]{2,})$")
 
-# 域名基本格式校验（whois/mx 入口防 traceback 泄漏）
+# 域名 punycode 形式（IDN 转换后）的格式校验
 DOMAIN_RE = re.compile(r'^(?=.{1,253}$)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$')
 
 
 def _normalize_domain(domain: str) -> Optional[str]:
-    """规范化并校验 domain。非法返回 None；合法返回 lower-case 形式。
-    防御目标：拒绝换行注入 / URL 形式 / 路径片段，避免直接进 dns.resolver / whois.whois。"""
+    """规范化并校验 domain。非法返回 None；合法返回 lower-case ASCII 形式。
+
+    支持 IDN（中文/韩文/日文等）：先 encode('idna') 转 punycode (`xn--...`)，
+    再过 DOMAIN_RE 严格校验。防御目标：拒绝换行注入 / URL 形式 / 路径片段。
+    """
     domain = (domain or '').strip().lower()
-    if not domain or not DOMAIN_RE.match(domain):
+    if not domain:
         return None
-    return domain
+    # IDN 转 punycode（如 '中国' → 'xn--fiqs8s'）
+    # 失败的非法 Unicode 域名（控制字符、不规范 label 等）走 except → None
+    try:
+        # encode('idna') 对每个 label 单独编码，自动处理混合 ASCII/Unicode 域名
+        ascii_form = domain.encode('idna').decode('ascii')
+    except (UnicodeError, UnicodeDecodeError):
+        return None
+    if not DOMAIN_RE.match(ascii_form):
+        return None
+    return ascii_form
+
+
+# mx_lookup 错误类型枚举（agent feedback：之前用 substring 匹配 dns 错误 message
+# 容易误判，比如 'NoNameservers' 含 'no' 会被错归为 no_mx；改用显式枚举）
+MX_ERR_NXDOMAIN = 'nxdomain'
+MX_ERR_NO_MX = 'no_mx'
+MX_ERR_INVALID_DOMAIN = 'invalid_domain'
+MX_ERR_NO_DNS_DEP = 'no_dns_dep'
+MX_ERR_DNS_FAILED = 'dns_failed'
 
 
 def email_validate(email: str) -> dict:
@@ -1452,22 +1482,14 @@ def email_validate(email: str) -> dict:
     m = EMAIL_RE.match(email)
     if not m:
         return {'email': email, 'syntax_valid': False, '_error': t('err.email_format')}
-    domain = m.group(1)
+    domain = m.group(2)  # group(1)=local part, group(2)=domain
     result: dict = {'email': email, 'syntax_valid': True, 'domain': domain}
     mx = mx_lookup(domain)
     if '_error' in mx:
         result['mx_valid'] = False
-        # 收敛 mx_error 为已知枚举（避免 dns_failed 嵌入 server IP / 内部 socket
-        # 错误细节泄漏到 --json 输出）；原始错误进 'mx_error_detail' 仅供调试
-        err_msg = mx['_error']
-        if 'NXDOMAIN' in err_msg or 'nxdomain' in err_msg or '不存在' in err_msg or 'does not exist' in err_msg.lower():
-            result['mx_error'] = 'nxdomain'
-        elif 'no_mx' in err_msg or 'no MX' in err_msg or '没有 MX' in err_msg:
-            result['mx_error'] = 'no_mx'
-        elif 'invalid' in err_msg.lower() or '不合法' in err_msg:
-            result['mx_error'] = 'invalid_domain'
-        else:
-            result['mx_error'] = 'dns_failed'
+        # 直接读 mx_lookup 返回的稳定枚举 —— 不再做 substring 嗅探
+        # （之前 'NoNameservers' 含 'no' 会被错归为 no_mx）
+        result['mx_error'] = mx.get('_error_kind', MX_ERR_DNS_FAILED)
     else:
         result['mx_valid'] = True
         result['mx_records'] = mx['records']
@@ -2195,7 +2217,10 @@ def _record_history(cmd: str, args: argparse.Namespace, data: Any) -> None:
     elif cmd == 'myip':
         summary = {'ok': data.get('ip') is not None}
     elif cmd == 'phone':
-        summary = {'number': args.number, 'ok': ok}
+        # phone 用 is_valid 判定 ok（is_possible=True 但 is_valid=False 的号码
+        # 不应记为成功 —— 它解析通过但实际不是真分配的号码段）
+        phone_ok = ok and bool(data.get('is_valid', False))
+        summary = {'number': args.number, 'ok': phone_ok}
     elif cmd == 'user':
         plat = _platform_only(data)
         found = sum(1 for v in plat.values() if v)

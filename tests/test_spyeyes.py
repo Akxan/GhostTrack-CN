@@ -849,7 +849,7 @@ class TestMxLookup:
 
 
 class TestNormalizeDomain:
-    """_normalize_domain 单元测试。"""
+    """_normalize_domain 单元测试（含 IDN 支持）。"""
 
     def test_valid_domains(self):
         for d in ('example.com', 'sub.example.com', 'EXAMPLE.COM', '  gmail.com  '):
@@ -865,6 +865,194 @@ class TestNormalizeDomain:
 
     def test_strips_whitespace(self):
         assert gt._normalize_domain('  gmail.com  ') == 'gmail.com'
+
+    def test_idn_chinese_domain_to_punycode(self):
+        """中文域名应转为 punycode（xn--）形式。"""
+        result = gt._normalize_domain('中国.cn')
+        assert result is not None
+        assert result.startswith('xn--')
+
+    def test_idn_japanese_domain(self):
+        """日文域名同样支持。"""
+        result = gt._normalize_domain('日本.jp')
+        assert result is not None
+        assert result.startswith('xn--')
+
+    def test_idn_mixed_label(self):
+        """混合 ASCII + Unicode label 也支持。"""
+        result = gt._normalize_domain('mail.中国.cn')
+        assert result is not None
+        assert 'xn--' in result
+
+    def test_already_punycode_passes_through(self):
+        """已经是 punycode 形式的输入直接通过。"""
+        result = gt._normalize_domain('xn--fiqs8s.cn')
+        assert result == 'xn--fiqs8s.cn'
+
+
+class TestEmailIDN:
+    """email_validate 支持 IDN 域名（local 部分仍 ASCII）。"""
+
+    def test_chinese_domain_email(self):
+        with patch.object(gt, 'mx_lookup', return_value={
+            'domain': 'xn--fiqs8s.cn',
+            'records': [{'preference': 10, 'exchange': 'mx.example.com'}],
+        }):
+            r = gt.email_validate('user@中国.cn')
+        assert r['syntax_valid'] is True
+
+    def test_quote_in_local_part(self):
+        """RFC 5321 允许 local 含 ' （之前 EMAIL_RE 拒绝了 o'malley@example.com）"""
+        with patch.object(gt, 'mx_lookup', return_value={'_error': 'x', '_error_kind': gt.MX_ERR_NXDOMAIN}):
+            r = gt.email_validate("o'malley@example.com")
+        assert r['syntax_valid'] is True
+
+
+class TestMxLookupErrorKind:
+    """mx_lookup 返回稳定 _error_kind 枚举（替代 substring 嗅探）。"""
+
+    def test_invalid_domain_kind(self):
+        if not gt.HAS_DNS:
+            pytest.skip('dns 依赖未安装')
+        result = gt.mx_lookup('not_a_domain')
+        assert result['_error_kind'] == gt.MX_ERR_INVALID_DOMAIN
+
+    def test_nxdomain_kind(self):
+        if not gt.HAS_DNS:
+            pytest.skip('dns 依赖未安装')
+        with patch.object(gt.dns.resolver, 'resolve',
+                            side_effect=gt.dns.resolver.NXDOMAIN()):
+            result = gt.mx_lookup('nonexistent.example')
+        assert result['_error_kind'] == gt.MX_ERR_NXDOMAIN
+
+    def test_no_mx_kind(self):
+        if not gt.HAS_DNS:
+            pytest.skip('dns 依赖未安装')
+        with patch.object(gt.dns.resolver, 'resolve',
+                            side_effect=gt.dns.resolver.NoAnswer()):
+            result = gt.mx_lookup('example.com')
+        assert result['_error_kind'] == gt.MX_ERR_NO_MX
+
+    def test_dns_failed_kind_no_substring_misclassification(self):
+        """关键：'NoNameservers' 含 'no' 之前会被错归为 no_mx，
+        现在用稳定枚举不会再误判。"""
+        if not gt.HAS_DNS:
+            pytest.skip('dns 依赖未安装')
+
+        class FakeNoNameservers(Exception):
+            def __str__(self):
+                return 'NoNameservers: All nameservers failed; no MX record cached'
+
+        with patch.object(gt.dns.resolver, 'resolve',
+                            side_effect=FakeNoNameservers()):
+            result = gt.mx_lookup('example.com')
+        assert result['_error_kind'] == gt.MX_ERR_DNS_FAILED, \
+            "通用异常应归到 dns_failed，不能被 substring 'no' 误归 no_mx"
+
+
+class TestPhoneIsValidSemantics:
+    """track_phone 与 _record_history 的 is_valid 语义一致性。
+
+    is_possible=True / is_valid=False 的号码现在不应被记为 ok=True
+    （之前会，因为 _record_history 只查 _error）。"""
+
+    def test_record_history_uses_is_valid(self, tmp_path, monkeypatch):
+        """长度 OK 但号码段未分配 → is_valid=False → history 应记 ok=False。"""
+        history_file = str(tmp_path / 'h.jsonl')
+        monkeypatch.setattr(gt, 'HISTORY_FILE', history_file)
+        import argparse
+        # 模拟 track_phone 返回 is_possible=True 但 is_valid=False 的数据
+        # （现实中，'+18005550199' 等保留号段可能触发）
+        fake_data = {
+            'is_valid': False,
+            'is_possible': True,
+            'country_code': 1,
+            'national': 5550199,
+        }
+        gt._record_history('phone', argparse.Namespace(number='+15550199'), fake_data)
+        with open(history_file, encoding='utf-8') as f:
+            rec = json.loads(f.readline())
+        assert rec['ok'] is False, "is_valid=False 应记为 ok=False"
+
+    def test_record_history_valid_phone_records_ok(self, tmp_path, monkeypatch):
+        history_file = str(tmp_path / 'h.jsonl')
+        monkeypatch.setattr(gt, 'HISTORY_FILE', history_file)
+        import argparse
+        fake_data = {'is_valid': True, 'is_possible': True, 'country_code': 86}
+        gt._record_history('phone', argparse.Namespace(number='+8613800138000'), fake_data)
+        with open(history_file, encoding='utf-8') as f:
+            rec = json.loads(f.readline())
+        assert rec['ok'] is True
+
+
+class TestRunCli:
+    """run_cli 端到端覆盖。之前测试都是组件级 mock，这层完全空白。"""
+
+    def _make_args(self, **kwargs):
+        import argparse
+        return argparse.Namespace(**kwargs)
+
+    def test_ip_success_returns_0(self, capsys, monkeypatch):
+        monkeypatch.setattr(gt, 'track_ip', lambda x: {'country': 'US'})
+        args = self._make_args(command='ip', target='8.8.8.8', json=True, save=None)
+        rc = gt.run_cli(args)
+        assert rc == 0
+        out = capsys.readouterr().out
+        assert 'US' in out
+
+    def test_ip_error_returns_1(self, capsys, monkeypatch):
+        monkeypatch.setattr(gt, 'track_ip', lambda x: {'_error': 'invalid'})
+        args = self._make_args(command='ip', target='garbage', json=True, save=None)
+        rc = gt.run_cli(args)
+        assert rc == 1
+
+    def test_unknown_cmd_returns_2(self):
+        args = self._make_args(command='not_a_real_cmd', json=False, save=None)
+        rc = gt.run_cli(args)
+        assert rc == 2
+
+    def test_history_subcommand_returns_0(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(gt, 'HISTORY_FILE', str(tmp_path / 'h.jsonl'))
+        args = self._make_args(command='history', limit=10, search=None,
+                                json=True, save=None)
+        rc = gt.run_cli(args)
+        assert rc == 0
+        # 空文件 → []
+        assert '[]' in capsys.readouterr().out
+
+    def test_batch_whois_dispatched_to_batch_lookup(self, monkeypatch):
+        """多个 domain 时 run_cli 走 _batch_lookup 而非单次 whois_lookup。"""
+        called = {'batch': 0, 'single': 0}
+
+        def fake_batch(fn, items, max_workers=10):
+            called['batch'] += 1
+            return {item: {'domain': item} for item in items}
+
+        def fake_single(d):
+            called['single'] += 1
+            return {'domain': d}
+
+        monkeypatch.setattr(gt, '_batch_lookup', fake_batch)
+        monkeypatch.setattr(gt, 'whois_lookup', fake_single)
+
+        # 1 domain → single
+        gt.run_cli(self._make_args(command='whois', domains=['example.com'],
+                                    json=True, save=None))
+        # 2 domains → batch
+        gt.run_cli(self._make_args(command='whois',
+                                    domains=['example.com', 'test.com'],
+                                    json=True, save=None))
+        assert called['batch'] == 1
+        assert called['single'] == 1
+
+    def test_save_called_on_success(self, tmp_path, monkeypatch, capsys):
+        save_path = str(tmp_path / 'r.json')
+        monkeypatch.setattr(gt, 'track_ip', lambda x: {'country': 'US'})
+        args = self._make_args(command='ip', target='8.8.8.8',
+                                json=True, save=save_path)
+        rc = gt.run_cli(args)
+        assert rc == 0
+        assert os.path.exists(save_path)
 
 
 class TestPhoneInvalid:
@@ -1022,31 +1210,46 @@ class TestSavePermissionError:
 
 
 class TestEmailMxErrorEnum:
-    """email_validate 的 mx_error 收敛为已知枚举（防 dns_failed 内部细节泄漏）。"""
+    """email_validate 的 mx_error 直接读 mx_lookup 返回的 _error_kind 枚举
+    （v1.0.x 前用 substring 匹配 i18n msg 容易误判，已改为枚举）。"""
 
-    def test_nxdomain_collapsed(self):
-        with patch.object(gt, 'mx_lookup',
-                            return_value={'_error': 'NXDOMAIN: example.invalid'}):
+    def test_nxdomain_kind_propagated(self):
+        with patch.object(gt, 'mx_lookup', return_value={
+            '_error': 'NXDOMAIN: example.invalid',
+            '_error_kind': gt.MX_ERR_NXDOMAIN,
+        }):
             r = gt.email_validate('user@example.invalid')
         assert r['mx_error'] == 'nxdomain'
 
-    def test_no_mx_collapsed(self):
-        with patch.object(gt, 'mx_lookup',
-                            return_value={'_error': 'no_mx for x.com'}):
+    def test_no_mx_kind_propagated(self):
+        with patch.object(gt, 'mx_lookup', return_value={
+            '_error': 'x.com has no MX records',
+            '_error_kind': gt.MX_ERR_NO_MX,
+        }):
             r = gt.email_validate('user@x.com')
         assert r['mx_error'] == 'no_mx'
 
-    def test_invalid_domain_collapsed(self):
-        with patch.object(gt, 'mx_lookup',
-                            return_value={'_error': '域名格式不合法：x'}):
+    def test_invalid_domain_kind_propagated(self):
+        with patch.object(gt, 'mx_lookup', return_value={
+            '_error': '域名格式不合法：x',
+            '_error_kind': gt.MX_ERR_INVALID_DOMAIN,
+        }):
             r = gt.email_validate('user@x.com')
         assert r['mx_error'] == 'invalid_domain'
 
-    def test_unknown_collapsed_to_dns_failed(self):
-        """未知错误（含 server IP / socket 细节）收敛为 dns_failed，不泄漏内部信息。"""
-        with patch.object(gt, 'mx_lookup',
-                            return_value={'_error': 'TimeoutError on 10.0.0.1:53'}):
+    def test_dns_failed_kind_propagated_no_ip_leak(self):
+        """dns_failed 错误的 server IP 不应泄漏到结果（信息隐藏）。"""
+        with patch.object(gt, 'mx_lookup', return_value={
+            '_error': 'TimeoutError on 10.0.0.1:53',
+            '_error_kind': gt.MX_ERR_DNS_FAILED,
+        }):
             r = gt.email_validate('user@x.com')
         assert r['mx_error'] == 'dns_failed'
-        # 内部 IP 不应出现在结果里
-        assert '10.0.0.1' not in str(r)
+        # _error_kind 是 enum 字符串，不含 IP；mx_error 字段也不含
+        assert '10.0.0.1' not in r['mx_error']
+
+    def test_missing_kind_falls_back_to_dns_failed(self):
+        """旧式 mx_lookup 没返回 _error_kind 时，安全 fallback 为 dns_failed。"""
+        with patch.object(gt, 'mx_lookup', return_value={'_error': 'something'}):
+            r = gt.email_validate('user@x.com')
+        assert r['mx_error'] == 'dns_failed'

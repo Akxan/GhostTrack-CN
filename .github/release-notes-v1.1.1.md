@@ -1,4 +1,4 @@
-# 🔥 GhostTrack-CN v1.1.1 — Patch Release
+# 🔥 SpyEyes v1.1.1 — Patch Release
 
 **经过 5 路独立审计修复 v1.1 中的 3 个 P1 真 bug**。所有 v1.1.0 用户**强烈建议升级**。
 
@@ -29,7 +29,7 @@
 
 ## 📋 完整变更
 
-详见 [CHANGELOG.md - 1.1.1](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md#111--2026-04-29)
+详见 [CHANGELOG.md - 1.1.1](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md#111--2026-04-29)
 
 ## 🚀 升级
 
@@ -40,11 +40,11 @@ git pull && pip install -r requirements.txt
 或全新安装：
 
 ```bash
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ---

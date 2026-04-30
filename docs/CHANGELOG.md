@@ -12,7 +12,7 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 代理支持 (`--proxy http://...` / SOCKS5)
 - 批量输入模式 (`--batch ips.txt`)
 - HIBP (Have I Been Pwned) 邮箱泄露集成
-- PyPI 发布 (`pip install ghosttrack-cn`)
+- PyPI 发布 (`pip install spyeyes-cn`)
 - Docker 镜像
 
 ---
@@ -137,7 +137,7 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
   - 通用 dict 自动转表格
   - `--save out/` 仍是 JSON（按扩展名自动判断）
 
-- **📚 查询历史记录** (`~/.ghosttrack/history.jsonl`)
+- **📚 查询历史记录** (`~/.spyeyes/history.jsonl`)
   - 每次查询自动追加（仅元数据：时间/命令/查询/摘要，**不存全量结果**保护隐私）
   - `gt history --limit 50 --search xxx` 列表 / 过滤
   - 双语 UI
@@ -204,7 +204,7 @@ OSINT 信息检索能力大幅扩展。从 113 个手工 curated 平台跃升至
   - 首次启动弹出语言选择器（中文 / English）
   - 菜单 `[ 8 ]` 切换语言，立即生效
   - CLI `--lang zh|en` 标志（一次性覆盖）
-  - 偏好持久化到 `~/.ghosttrack/config.json`
+  - 偏好持久化到 `~/.spyeyes/config.json`
   - 优先级：CLI > 配置文件 > `LANG` 环境变量 > 默认
   - 国家名根据语言显示：zh → "美国 (United States)"；en → "United States"
 
@@ -276,7 +276,7 @@ OSINT 信息检索能力大幅扩展。从 113 个手工 curated 平台跃升至
   - 域名 WHOIS 查询（`python-whois`）
   - 域名 MX 记录查询（`dnspython`）
   - 邮箱有效性验证（正则 + MX 联合）
-- **CLI 参数模式**：所有功能均可通过 `python3 GhostTR.py <subcmd>` 非交互调用
+- **CLI 参数模式**：所有功能均可通过 `python3 spyeyes.py <subcmd>` 非交互调用
 - **JSON 输出**（`--json`）：方便管道处理与脚本集成
 - **结果保存**（`--save DIR`）：自动落盘为 `<功能>_<时间戳>.json`
 - **国家中文映射表**：180+ 国家/地区，IP 显示中文国名
@@ -316,11 +316,11 @@ OSINT 信息检索能力大幅扩展。从 113 个手工 curated 平台跃升至
 
 ---
 
-[Unreleased]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.3...HEAD
-[1.2.3]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.2...v1.2.3
-[1.2.2]: https://github.com/Akxan/GhostTrack-CN/compare/v1.2.1...v1.2.2
-[1.2.1]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.1...v1.2.1
-[1.2.0]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.1...v1.2.0
-[1.1.1]: https://github.com/Akxan/GhostTrack-CN/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/Akxan/GhostTrack-CN/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/Akxan/GhostTrack-CN/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Akxan/SpyEyes/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/Akxan/SpyEyes/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/Akxan/SpyEyes/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/Akxan/SpyEyes/compare/v1.1.1...v1.2.1
+[1.2.0]: https://github.com/Akxan/SpyEyes/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/Akxan/SpyEyes/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/Akxan/SpyEyes/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/Akxan/SpyEyes/releases/tag/v1.0.0

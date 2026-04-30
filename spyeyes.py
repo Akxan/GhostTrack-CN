@@ -3,8 +3,8 @@
 # << 原作者 https://github.com/HunxByts/GhostTrack
 
 """
-GhostTrack-CN —— OSINT 信息查询工具（中英双语）
-GhostTrack-CN —— OSINT Toolkit (Bilingual: Chinese / English)
+SpyEyes —— OSINT 信息查询工具（中英双语）
+SpyEyes —— OSINT Toolkit (Bilingual: Chinese / English)
 """
 
 import argparse
@@ -38,7 +38,7 @@ except ImportError:
 # ====================================================================
 # CONFIG —— 用户偏好持久化（语言等）
 # ====================================================================
-CONFIG_DIR = os.path.expanduser('~/.ghosttrack')
+CONFIG_DIR = os.path.expanduser('~/.spyeyes')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
 HISTORY_FILE = os.path.join(CONFIG_DIR, 'history.jsonl')
 
@@ -406,7 +406,8 @@ _lang = 'zh'  # 当前语言，由 set_lang() 修改
 
 def detect_lang() -> str:
     """根据系统环境自动判定默认语言。"""
-    val = (os.environ.get('GHOSTTRACK_LANG')
+    val = (os.environ.get('SPYEYES_LANG')
+           or os.environ.get('GHOSTTRACK_LANG')  # 旧版兼容
            or os.environ.get('LC_ALL')
            or os.environ.get('LANG')
            or '').lower()
@@ -1320,13 +1321,13 @@ def email_validate(email: str) -> dict:
 # ====================================================================
 def print_banner() -> None:
     sys.stderr.write(f"""{Color.Gr}
-       ________               __      ______                __
-      / ____/ /_  ____  _____/ /_    /_  __/________ ______/ /__
-     / / __/ __ \\/ __ \\/ ___/ __/_____/ / / ___/ __ `/ ___/ //_/
-    / /_/ / / / / /_/ (__  ) /_/_____/ / / /  / /_/ / /__/ ,<
-    \\____/_/ /_/\\____/____/\\__/     /_/ /_/   \\__,_/\\___/_/|_|
-
-              {Color.Wh}[ + ]  C O D E   B Y  H U N X  [ + ]{Color.Reset}
+███████╗██████╗ ██╗   ██╗███████╗██╗   ██╗███████╗███████╗
+██╔════╝██╔══██╗╚██╗ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝██╔════╝
+███████╗██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ █████╗  ███████╗
+╚════██║██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ██╔══╝  ╚════██║
+███████║██║        ██║   ███████╗   ██║   ███████╗███████║
+╚══════╝╚═╝        ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚══════╝
+       {Color.Wh}👁  All-in-One OSINT Toolkit  ·  github.com/Akxan/SpyEyes  👁{Color.Reset}
 """)
 
 
@@ -1697,12 +1698,12 @@ def _to_markdown(prefix: str, data: Any) -> str:
     cmd = _md_escape(cmd) or '?'
     query = _md_escape(query)
     ts = time.strftime('%Y-%m-%d %H:%M:%S')
-    lines.append("# 🔍 GhostTrack Report")
+    lines.append("# 🔍 SpyEyes Report")
     lines.append("")
     lines.append(f"- **Command**: `{cmd}`")
     lines.append(f"- **Query**: `{query}`")
     lines.append(f"- **Generated**: {ts}")
-    lines.append("- **Tool**: [GhostTrack-CN](https://github.com/Akxan/GhostTrack-CN)")
+    lines.append("- **Tool**: [SpyEyes](https://github.com/Akxan/SpyEyes)")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -1820,22 +1821,22 @@ def build_parser() -> argparse.ArgumentParser:
                         default=argparse.SUPPRESS, help='UI language: zh or en / 界面语言')
 
     parser = argparse.ArgumentParser(
-        prog='GhostTR',
+        prog='spyeyes',
         parents=[common],
-        description='GhostTrack-CN —— OSINT toolkit (bilingual: zh/en)',
+        description='SpyEyes —— OSINT toolkit (bilingual: zh/en)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Examples / 示例:
-  python3 GhostTR.py                          # Interactive menu / 交互菜单
-  python3 GhostTR.py --lang en                # Force English UI / 强制英文界面
-  python3 GhostTR.py ip 8.8.8.8               # IP lookup
-  python3 GhostTR.py myip --lang en           # English JSON
-  python3 GhostTR.py phone +12025550100       # Phone parse
-  python3 GhostTR.py user torvalds            # Username scan
-  python3 GhostTR.py whois example.com        # WHOIS
-  python3 GhostTR.py mx gmail.com             # MX records
-  python3 GhostTR.py email a@b.com            # Email validate
-  python3 GhostTR.py ip 8.8.8.8 --json        # JSON output
-  python3 GhostTR.py ip 8.8.8.8 --save out/   # Save to file
+  python3 spyeyes.py                          # Interactive menu / 交互菜单
+  python3 spyeyes.py --lang en                # Force English UI / 强制英文界面
+  python3 spyeyes.py ip 8.8.8.8               # IP lookup
+  python3 spyeyes.py myip --lang en           # English JSON
+  python3 spyeyes.py phone +12025550100       # Phone parse
+  python3 spyeyes.py user torvalds            # Username scan
+  python3 spyeyes.py whois example.com        # WHOIS
+  python3 spyeyes.py mx gmail.com             # MX records
+  python3 spyeyes.py email a@b.com            # Email validate
+  python3 spyeyes.py ip 8.8.8.8 --json        # JSON output
+  python3 spyeyes.py ip 8.8.8.8 --save out/   # Save to file
 """,
     )
 

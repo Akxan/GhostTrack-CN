@@ -1,4 +1,4 @@
-# 🛡 GhostTrack-CN v1.2.3 — Audit Patch（覆盖 v1.2.2）
+# 🛡 SpyEyes v1.2.3 — Audit Patch（覆盖 v1.2.2）
 
 第 N 轮 5 路独立审计（ruff + mypy + bandit + pytest + agent）发现 **4 个 P1 真 bug**，全修。同步加 ReDoS 防护。
 
@@ -32,7 +32,7 @@ git pull && pip install -r requirements.txt
 
 ## 完整变更
 
-详见 [CHANGELOG - 1.2.3](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md#123--2026-04-29)
+详见 [CHANGELOG - 1.2.3](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md#123--2026-04-29)
 
 ---
 

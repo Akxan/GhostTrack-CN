@@ -1,29 +1,29 @@
 <div align="center">
 
-# 🔍 GhostTrack-CN
+# 🔍 SpyEyes
 
 ### OSINT 信息查询工具中文增强版
 
 **一站式查询 IP · 电话 · 用户名 · 域名 WHOIS · MX 记录 · 邮箱有效性**
 
-[![CI](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Akxan/GhostTrack-CN/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/GhostTrack-CN)
+[![CI](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Akxan/SpyEyes/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/SpyEyes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-99%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-2067-orange.svg)](data/platforms.json)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-安装)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
-[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
+[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/SpyEyes/commits/main)
 
-[![Stars](https://img.shields.io/github/stars/Akxan/GhostTrack-CN?style=social)](https://github.com/Akxan/GhostTrack-CN/stargazers)
-[![Forks](https://img.shields.io/github/forks/Akxan/GhostTrack-CN?style=social)](https://github.com/Akxan/GhostTrack-CN/network/members)
-[![Issues](https://img.shields.io/github/issues/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
+[![Stars](https://img.shields.io/github/stars/Akxan/SpyEyes?style=social)](https://github.com/Akxan/SpyEyes/stargazers)
+[![Forks](https://img.shields.io/github/forks/Akxan/SpyEyes?style=social)](https://github.com/Akxan/SpyEyes/network/members)
+[![Issues](https://img.shields.io/github/issues/Akxan/SpyEyes.svg)](https://github.com/Akxan/SpyEyes/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/Akxan/SpyEyes.svg)](https://github.com/Akxan/SpyEyes/commits/main)
 
 **🇨🇳 中文 · [🇬🇧 English](README.en.md)**
 
-[**📖 详细教程**](docs/TUTORIAL.md) · [**🐛 报 Bug**](https://github.com/Akxan/GhostTrack-CN/issues) · [**🤝 贡献代码**](docs/CONTRIBUTING.md) · [**📝 更新日志**](docs/CHANGELOG.md)
+[**📖 详细教程**](docs/TUTORIAL.md) · [**🐛 报 Bug**](https://github.com/Akxan/SpyEyes/issues) · [**🤝 贡献代码**](docs/CONTRIBUTING.md) · [**📝 更新日志**](docs/CHANGELOG.md)
 
 </div>
 
@@ -31,13 +31,13 @@
 
 ## 📖 项目简介
 
-**GhostTrack-CN** 是一款用 Python 编写的命令行 **OSINT（开源情报）信息收集工具**，专为中文用户深度优化。基于 [HunxByts/GhostTrack](https://github.com/HunxByts/GhostTrack) 二次开发，并在原版基础上做了大量功能增强、性能优化和本地化改进。
+**SpyEyes** 是一款用 Python 编写的命令行 **OSINT（开源情报）信息收集工具**，专为中文用户深度优化。基于 [HunxByts/GhostTrack](https://github.com/HunxByts/GhostTrack) 二次开发，并在原版基础上做了大量功能增强、性能优化和本地化改进。
 
 适合 **网络安全研究人员、渗透测试工程师、SOC 分析师、技术调查员、红队蓝队成员、CTF 玩家** 以及任何对开源情报感兴趣的开发者使用。
 
 ### 🆚 相比原版的改进
 
-| 维度 | 原版 GhostTrack | GhostTrack-CN |
+| 维度 | 原版 GhostTrack | SpyEyes |
 |---|---|---|
 | **语言** | 英文 + 印尼文 | 全中文 UI（菜单/标签/错误） |
 | **功能数量** | 4 个 | **7 个**（+WHOIS / MX / 邮箱验证） |
@@ -118,11 +118,11 @@
 | [holehe](https://github.com/megadose/holehe) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 | [theHarvester](https://github.com/laramies/theHarvester) | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 | [Recon-ng](https://github.com/lanmaster53/recon-ng) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **GhostTrack-CN** | ✅ | ✅ | ✅ **(2067)** | ✅ | ✅ | ✅ | ✅ |
+| **SpyEyes** | ✅ | ✅ | ✅ **(2067)** | ✅ | ✅ | ✅ | ✅ |
 
-> 💡 **定位说明**：GhostTrack-CN **不是**为了在用户名扫描深度上跟 Sherlock 卷，而是做**轻量级一站式中文工具**。
+> 💡 **定位说明**：SpyEyes **不是**为了在用户名扫描深度上跟 Sherlock 卷，而是做**轻量级一站式中文工具**。
 > - 只查用户名 → Sherlock / Maigret 更专业
-> - 想一个工具搞定 6 类查询且全中文 → **GhostTrack-CN 就是为你准备的**
+> - 想一个工具搞定 6 类查询且全中文 → **SpyEyes 就是为你准备的**
 
 ---
 
@@ -158,40 +158,40 @@
 ### 一行安装运行（macOS / Linux）
 
 ```bash
-git clone https://github.com/Akxan/GhostTrack-CN.git && \
-cd GhostTrack-CN && \
+git clone https://github.com/Akxan/SpyEyes.git && \
+cd SpyEyes && \
 python3 -m venv .venv && \
 source .venv/bin/activate && \
 pip install -r requirements.txt && \
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ### 立即体验
 
 ```bash
 # 查询 Google DNS 的 IP 信息
-python3 GhostTR.py ip 8.8.8.8
+python3 spyeyes.py ip 8.8.8.8
 
 # 查询本机出口 IP
-python3 GhostTR.py myip
+python3 spyeyes.py myip
 
 # 查询电话号码
-python3 GhostTR.py phone +8613800138000
+python3 spyeyes.py phone +8613800138000
 
 # 扫描用户名
-python3 GhostTR.py user torvalds
+python3 spyeyes.py user torvalds
 
 # WHOIS 查询
-python3 GhostTR.py whois example.com
+python3 spyeyes.py whois example.com
 
 # MX 记录
-python3 GhostTR.py mx gmail.com
+python3 spyeyes.py mx gmail.com
 
 # 邮箱验证
-python3 GhostTR.py email someone@gmail.com
+python3 spyeyes.py email someone@gmail.com
 
 # 输出 JSON + 保存到文件
-python3 GhostTR.py ip 8.8.8.8 --json --save results/
+python3 spyeyes.py ip 8.8.8.8 --json --save results/
 ```
 
 ---
@@ -202,8 +202,8 @@ python3 GhostTR.py ip 8.8.8.8 --json --save results/
 
 ```bash
 brew install python3 git
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -213,8 +213,8 @@ pip install -r requirements.txt
 
 ```bash
 sudo apt-get install git python3 python3-pip python3-venv
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -223,8 +223,8 @@ pip install -r requirements.txt
 
 ```bash
 pkg install git python
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 pip install -r requirements.txt
 ```
 
@@ -232,8 +232,8 @@ pip install -r requirements.txt
 
 ```powershell
 # 在 https://www.python.org 下载 Python 3，安装时勾选 "Add to PATH"
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -246,17 +246,17 @@ pip install -r requirements.txt
 ### 1️⃣ 交互菜单模式
 
 ```bash
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ```
-       ________               __      ______                __
-      / ____/ /_  ____  _____/ /_    /_  __/________ ______/ /__
-     / / __/ __ \/ __ \/ ___/ __/_____/ / / ___/ __ `/ ___/ //_/
-    / /_/ / / / / /_/ (__  ) /_/_____/ / / /  / /_/ / /__/ ,<
-    \____/_/ /_/\____/____/\__/     /_/ /_/   \__,_/\___/_/|_|
-
-              [ + ]  C O D E   B Y  H U N X  [ + ]
+███████╗██████╗ ██╗   ██╗███████╗██╗   ██╗███████╗███████╗
+██╔════╝██╔══██╗╚██╗ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝██╔════╝
+███████╗██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ █████╗  ███████╗
+╚════██║██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ██╔══╝  ╚════██║
+███████║██║        ██║   ███████╗   ██║   ███████╗███████║
+╚══════╝╚═╝        ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚══════╝
+       👁  All-in-One OSINT Toolkit  ·  github.com/Akxan/SpyEyes  👁
 
 [ 1 ] IP 追踪
 [ 2 ] 查看本机 IP
@@ -274,21 +274,21 @@ python3 GhostTR.py
 
 ```bash
 # 基本用法
-python3 GhostTR.py <subcommand> <args...> [--json] [--save DIR] [--no-color]
+python3 spyeyes.py <subcommand> <args...> [--json] [--save DIR] [--no-color]
 
 # 与 jq 联动（管道处理）
-python3 GhostTR.py ip 8.8.8.8 --json | jq -r '.country'
-python3 GhostTR.py phone +8613800138000 --json | jq -r '.location'
+python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
+python3 spyeyes.py phone +8613800138000 --json | jq -r '.location'
 
 # 批量查 IP
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 GhostTR.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 
 # 自动保存所有查询结果
 mkdir -p results
-python3 GhostTR.py user torvalds --save results
-python3 GhostTR.py mx gmail.com --save results
+python3 spyeyes.py user torvalds --save results
+python3 spyeyes.py mx gmail.com --save results
 ```
 
 ### 3️⃣ 完整教程
@@ -322,8 +322,8 @@ pytest tests/ --cov=. --cov-report=term-missing
 ## 📁 项目结构
 
 ```
-GhostTrack-CN/
-├── GhostTR.py                  # 主脚本（1400 行，含全部功能 + i18n）
+SpyEyes/
+├── spyeyes.py                  # 主脚本（1400 行，含全部功能 + i18n）
 ├── README.md                   # 你正在看的这个（中文入口）
 ├── README.en.md                # English entry
 ├── LICENSE                     # MIT
@@ -339,7 +339,7 @@ GhostTrack-CN/
 │   └── build_platforms.py      # 平台数据库重建脚本（拉取上游最新）
 ├── tests/
 │   ├── __init__.py
-│   └── test_ghosttrack.py      # 99 个 pytest 测试
+│   └── test_spyeyes.py      # 99 个 pytest 测试
 ├── .github/
 │   ├── workflows/ci.yml        # GitHub Actions CI（多 OS × 多 Python 版本）
 │   ├── ISSUE_TEMPLATE/         # bug / 功能 issue 模板
@@ -364,7 +364,7 @@ GhostTrack-CN/
 
 ## 📈 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Akxan/GhostTrack-CN&type=Date)](https://star-history.com/#Akxan/GhostTrack-CN&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Akxan/SpyEyes&type=Date)](https://star-history.com/#Akxan/SpyEyes&Date)
 
 ---
 
@@ -374,8 +374,8 @@ GhostTrack-CN/
 
 请先阅读 [CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解开发流程和代码规范。
 
-<a href="https://github.com/Akxan/GhostTrack-CN/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Akxan/GhostTrack-CN" />
+<a href="https://github.com/Akxan/SpyEyes/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Akxan/SpyEyes" />
 </a>
 
 ---
@@ -427,6 +427,6 @@ GhostTrack-CN/
 
 **如果这个项目对你有帮助，请给个 ⭐ Star 鼓励一下！**
 
-[⬆ 回到顶部](#-ghosttrack-cn)
+[⬆ 回到顶部](#-spyeyes-cn)
 
 </div>

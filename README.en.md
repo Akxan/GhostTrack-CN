@@ -1,29 +1,29 @@
 <div align="center">
 
-# 🔍 GhostTrack-CN
+# 🔍 SpyEyes
 
 ### All-in-One OSINT Toolkit (Chinese-Enhanced Edition)
 
 **One-shot lookup for IP · Phone · Username · WHOIS · MX · Email**
 
-[![CI](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/GhostTrack-CN/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Akxan/GhostTrack-CN/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/GhostTrack-CN)
+[![CI](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Akxan/SpyEyes/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/SpyEyes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-99%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-2067-orange.svg)](data/platforms.json)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-installation)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
-[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
+[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/Akxan/SpyEyes/commits/main)
 
-[![Stars](https://img.shields.io/github/stars/Akxan/GhostTrack-CN?style=social)](https://github.com/Akxan/GhostTrack-CN/stargazers)
-[![Forks](https://img.shields.io/github/forks/Akxan/GhostTrack-CN?style=social)](https://github.com/Akxan/GhostTrack-CN/network/members)
-[![Issues](https://img.shields.io/github/issues/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/Akxan/GhostTrack-CN.svg)](https://github.com/Akxan/GhostTrack-CN/commits/main)
+[![Stars](https://img.shields.io/github/stars/Akxan/SpyEyes?style=social)](https://github.com/Akxan/SpyEyes/stargazers)
+[![Forks](https://img.shields.io/github/forks/Akxan/SpyEyes?style=social)](https://github.com/Akxan/SpyEyes/network/members)
+[![Issues](https://img.shields.io/github/issues/Akxan/SpyEyes.svg)](https://github.com/Akxan/SpyEyes/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/Akxan/SpyEyes.svg)](https://github.com/Akxan/SpyEyes/commits/main)
 
 **[🇨🇳 中文](README.md) · 🇬🇧 English**
 
-[**📖 Tutorial**](docs/TUTORIAL.md) · [**🐛 Report Bug**](https://github.com/Akxan/GhostTrack-CN/issues) · [**🤝 Contribute**](docs/CONTRIBUTING.md)
+[**📖 Tutorial**](docs/TUTORIAL.md) · [**🐛 Report Bug**](https://github.com/Akxan/SpyEyes/issues) · [**🤝 Contribute**](docs/CONTRIBUTING.md)
 
 </div>
 
@@ -31,13 +31,13 @@
 
 ## 📖 About
 
-**GhostTrack-CN** is a Python-based command-line **OSINT (Open-Source Intelligence) toolkit**, deeply optimized for Chinese-speaking users. It is a heavily refactored derivative of [HunxByts/GhostTrack](https://github.com/HunxByts/GhostTrack), with major additions in functionality, performance, and localization.
+**SpyEyes** is a Python-based command-line **OSINT (Open-Source Intelligence) toolkit**, deeply optimized for Chinese-speaking users. It is a heavily refactored derivative of [HunxByts/GhostTrack](https://github.com/HunxByts/GhostTrack), with major additions in functionality, performance, and localization.
 
 Designed for **security researchers, penetration testers, SOC analysts, threat hunters, red/blue teamers, CTF players** and anyone curious about open-source intelligence.
 
 ### 🆚 What's improved over the original
 
-| Aspect | Original GhostTrack | GhostTrack-CN |
+| Aspect | Original GhostTrack | SpyEyes |
 |---|---|---|
 | **Language** | English + Indonesian | Full Chinese UI (menus / labels / errors) |
 | **Features** | 4 | **7** (+WHOIS / MX / Email validation) |
@@ -118,9 +118,9 @@ Designed for **security researchers, penetration testers, SOC analysts, threat h
 | [holehe](https://github.com/megadose/holehe) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 | [theHarvester](https://github.com/laramies/theHarvester) | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 | [Recon-ng](https://github.com/lanmaster53/recon-ng) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **GhostTrack-CN** | ✅ | ✅ | ✅ **(2067)** | ✅ | ✅ | ✅ | ✅ |
+| **SpyEyes** | ✅ | ✅ | ✅ **(2067)** | ✅ | ✅ | ✅ | ✅ |
 
-> 💡 **Positioning**: GhostTrack-CN is **not** trying to outdo Sherlock in username-scan depth. It's a **lightweight all-in-one Chinese-first toolkit**. For pure username OSINT, Sherlock/Maigret are deeper. For one tool covering 6 lookup types with full Chinese localization, GhostTrack-CN is unmatched.
+> 💡 **Positioning**: SpyEyes is **not** trying to outdo Sherlock in username-scan depth. It's a **lightweight all-in-one Chinese-first toolkit**. For pure username OSINT, Sherlock/Maigret are deeper. For one tool covering 6 lookup types with full Chinese localization, SpyEyes is unmatched.
 
 ---
 
@@ -156,40 +156,40 @@ Designed for **security researchers, penetration testers, SOC analysts, threat h
 ### One-liner install & run (macOS / Linux)
 
 ```bash
-git clone https://github.com/Akxan/GhostTrack-CN.git && \
-cd GhostTrack-CN && \
+git clone https://github.com/Akxan/SpyEyes.git && \
+cd SpyEyes && \
 python3 -m venv .venv && \
 source .venv/bin/activate && \
 pip install -r requirements.txt && \
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ### Try it instantly
 
 ```bash
 # Look up Google DNS
-python3 GhostTR.py ip 8.8.8.8
+python3 spyeyes.py ip 8.8.8.8
 
 # Show your public IP
-python3 GhostTR.py myip
+python3 spyeyes.py myip
 
 # Parse a phone number
-python3 GhostTR.py phone +12025550100
+python3 spyeyes.py phone +12025550100
 
 # Scan a username
-python3 GhostTR.py user torvalds
+python3 spyeyes.py user torvalds
 
 # WHOIS
-python3 GhostTR.py whois example.com
+python3 spyeyes.py whois example.com
 
 # MX records
-python3 GhostTR.py mx gmail.com
+python3 spyeyes.py mx gmail.com
 
 # Email validation
-python3 GhostTR.py email someone@gmail.com
+python3 spyeyes.py email someone@gmail.com
 
 # JSON + save
-python3 GhostTR.py ip 8.8.8.8 --json --save results/
+python3 spyeyes.py ip 8.8.8.8 --json --save results/
 ```
 
 ---
@@ -200,8 +200,8 @@ python3 GhostTR.py ip 8.8.8.8 --json --save results/
 
 ```bash
 brew install python3 git
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -210,8 +210,8 @@ pip install -r requirements.txt
 
 ```bash
 sudo apt-get install git python3 python3-pip python3-venv
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -220,8 +220,8 @@ pip install -r requirements.txt
 
 ```bash
 pkg install git python
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 pip install -r requirements.txt
 ```
 
@@ -229,8 +229,8 @@ pip install -r requirements.txt
 
 ```powershell
 # Install Python 3 from python.org, check "Add to PATH"
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -243,21 +243,21 @@ pip install -r requirements.txt
 ### 1️⃣ Interactive menu mode
 
 ```bash
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ### 2️⃣ CLI mode (script-friendly)
 
 ```bash
 # Basic
-python3 GhostTR.py <subcommand> <args> [--json] [--save DIR] [--no-color]
+python3 spyeyes.py <subcommand> <args> [--json] [--save DIR] [--no-color]
 
 # Pipe with jq
-python3 GhostTR.py ip 8.8.8.8 --json | jq -r '.country'
+python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
 
 # Bulk
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 GhostTR.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 ```
 
@@ -284,8 +284,8 @@ pytest tests/ --cov=. --cov-report=term-missing
 ## 📁 Project Structure
 
 ```
-GhostTrack-CN/
-├── GhostTR.py                  # Main script (1400 lines, includes i18n)
+SpyEyes/
+├── spyeyes.py                  # Main script (1400 lines, includes i18n)
 ├── README.md                   # 中文 README
 ├── README.en.md                # English README (you are here)
 ├── LICENSE                     # MIT
@@ -301,7 +301,7 @@ GhostTrack-CN/
 │   └── build_platforms.py      # Refresh platform DB from upstream sources
 ├── tests/
 │   ├── __init__.py
-│   └── test_ghosttrack.py      # 99 pytest tests
+│   └── test_spyeyes.py      # 99 pytest tests
 ├── .github/
 │   ├── workflows/ci.yml        # GitHub Actions CI (multi-OS × multi-Python)
 │   ├── ISSUE_TEMPLATE/         # Issue templates
@@ -326,7 +326,7 @@ GhostTrack-CN/
 
 ## 📈 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Akxan/GhostTrack-CN&type=Date)](https://star-history.com/#Akxan/GhostTrack-CN&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Akxan/SpyEyes&type=Date)](https://star-history.com/#Akxan/SpyEyes&Date)
 
 ---
 
@@ -336,8 +336,8 @@ PRs, Issues, and Stars all welcome!
 
 Read [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development workflow and code conventions.
 
-<a href="https://github.com/Akxan/GhostTrack-CN/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Akxan/GhostTrack-CN" />
+<a href="https://github.com/Akxan/SpyEyes/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Akxan/SpyEyes" />
 </a>
 
 ---
@@ -393,6 +393,6 @@ Users assume all legal responsibility. See [TUTORIAL.md - Legal Notice](docs/TUT
 
 **If this project helps you, please ⭐ star it to support development!**
 
-[⬆ Back to top](#-ghosttrack-cn)
+[⬆ Back to top](#-spyeyes-cn)
 
 </div>

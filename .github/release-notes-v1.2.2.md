@@ -1,4 +1,4 @@
-# 🎯 GhostTrack-CN v1.2.2 — Sherlock 完整体（regex 预过滤 + WAF 检测）
+# 🎯 SpyEyes v1.2.2 — Sherlock 完整体（regex 预过滤 + WAF 检测）
 
 整合 Sherlock 项目剩下的核心思路：**`regex_check` 预过滤** + **WAF 拦截识别**，让结果更准、对反爬墙透明。
 
@@ -53,7 +53,7 @@ git pull && pip install -r requirements.txt
 
 ## 完整变更
 
-详见 [CHANGELOG - 1.2.2](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md#122--2026-04-29)
+详见 [CHANGELOG - 1.2.2](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md#122--2026-04-29)
 
 ---
 

@@ -1,4 +1,4 @@
-# 🚀 GhostTrack-CN v1.2.1 — 速度翻倍 + 6 个 P1 Bug 修复（覆盖 v1.2.0）
+# 🚀 SpyEyes v1.2.1 — 速度翻倍 + 6 个 P1 Bug 修复（覆盖 v1.2.0）
 
 经过 5 路独立审计 + Sherlock 思路借鉴，**用户名扫描 2× 提速**，**6 个 P1 真 bug 全修**。
 
@@ -48,7 +48,7 @@ git pull && pip install -r requirements.txt
 
 ## 完整变更
 
-详见 [CHANGELOG - 1.2.1](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md#121--2026-04-29)
+详见 [CHANGELOG - 1.2.1](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md#121--2026-04-29)
 
 ---
 

@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: 版本 / Version
-      description: GhostTrack-CN 的 git commit hash 或 release tag
+      description: SpyEyes 的 git commit hash 或 release tag
       placeholder: "v1.0.0 或 main@abc1234"
     validations:
       required: true
@@ -65,7 +65,7 @@ body:
       label: 复现命令 / Reproduction Command
       description: 完整的命令和输入
       placeholder: |
-        python3 GhostTR.py ip 8.8.8.8 --json
+        python3 spyeyes.py ip 8.8.8.8 --json
       render: bash
     validations:
       required: true

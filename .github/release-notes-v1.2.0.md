@@ -1,4 +1,4 @@
-# 🚀 GhostTrack-CN v1.2.0 — 5 大新功能 / Big Feature Release
+# 🚀 SpyEyes v1.2.0 — 5 大新功能 / Big Feature Release
 
 性能 + UX 大幅升级。新增 **5 大功能**：扫描进度条、模式筛选、Markdown 报告、查询历史、批量域名查询。
 
@@ -62,7 +62,7 @@ git pull && pip install -r requirements.txt
 
 ## 完整变更
 
-详见 [CHANGELOG - 1.2.0](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md#120--2026-04-29)
+详见 [CHANGELOG - 1.2.0](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md#120--2026-04-29)
 
 ---
 

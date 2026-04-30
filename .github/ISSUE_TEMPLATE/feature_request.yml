@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        欢迎提建议！请先在 [Issues](https://github.com/Akxan/GhostTrack-CN/issues) 搜索是否已有相同提议。
+        欢迎提建议！请先在 [Issues](https://github.com/Akxan/SpyEyes/issues) 搜索是否已有相同提议。
         Welcome to suggest! Please search existing issues first.
 
   - type: textarea

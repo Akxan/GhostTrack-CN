@@ -15,7 +15,7 @@ If you discover a security vulnerability, **do NOT** open a public issue.
 请通过以下方式之一私下联系：
 
 - 📧 **邮件 / Email**: 通过 GitHub profile 找联系方式
-- 🔐 **GitHub Security Advisory**: [开私密 advisory](https://github.com/Akxan/GhostTrack-CN/security/advisories/new)（推荐）
+- 🔐 **GitHub Security Advisory**: [开私密 advisory](https://github.com/Akxan/SpyEyes/security/advisories/new)（推荐）
 
 报告时请尽量包含：
 
@@ -32,7 +32,7 @@ If you discover a security vulnerability, **do NOT** open a public issue.
 
 ## 安全设计原则 / Security Principles
 
-GhostTrack-CN 在设计上遵循以下原则：
+SpyEyes 在设计上遵循以下原则：
 
 1. **不存储用户输入**：查询数据仅在内存中处理（除非用户显式 `--save`）
 2. **不发送未授权请求**：所有 API 调用目标域名公开透明（`ipwho.is` / `ipify.org` 等）
@@ -47,6 +47,6 @@ GhostTrack-CN 在设计上遵循以下原则：
 
 ---
 
-感谢你帮助让 GhostTrack-CN 更安全 🙏
+感谢你帮助让 SpyEyes 更安全 🙏
 
-Thank you for helping keep GhostTrack-CN secure!
+Thank you for helping keep SpyEyes secure!

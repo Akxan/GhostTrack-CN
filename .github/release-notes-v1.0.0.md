@@ -1,4 +1,4 @@
-# 🎉 GhostTrack-CN v1.0.0 — 首个正式版
+# 🎉 SpyEyes v1.0.0 — 首个正式版
 
 基于 [HunxByts/GhostTrack](https://github.com/HunxByts/GhostTrack) 全面重构与中文增强。
 
@@ -15,25 +15,25 @@
 ## 📦 快速开始
 
 ```bash
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 或一行 CLI：
 
 ```bash
-python3 GhostTR.py ip 8.8.8.8 --json | jq -r '.country'
+python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
 ```
 
 ## 📚 文档
 
-- [README (中文)](https://github.com/Akxan/GhostTrack-CN/blob/main/README.md)
-- [README (English)](https://github.com/Akxan/GhostTrack-CN/blob/main/README.en.md)
-- [详细教程](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/TUTORIAL.md)
-- [完整更新日志](https://github.com/Akxan/GhostTrack-CN/blob/main/docs/CHANGELOG.md)
+- [README (中文)](https://github.com/Akxan/SpyEyes/blob/main/README.md)
+- [README (English)](https://github.com/Akxan/SpyEyes/blob/main/README.en.md)
+- [详细教程](https://github.com/Akxan/SpyEyes/blob/main/docs/TUTORIAL.md)
+- [完整更新日志](https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md)
 
 ## 🙏 致谢
 

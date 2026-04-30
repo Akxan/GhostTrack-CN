@@ -1,6 +1,6 @@
-# GhostTrack 详细使用教程
+# SpyEyes 详细使用教程
 
-> 本文档面向中文用户，带你从零开始安装、运行、理解 GhostTrack 的所有功能。
+> 本文档面向中文用户，带你从零开始安装、运行、理解 SpyEyes 的所有功能。
 
 ## 目录
 
@@ -29,7 +29,7 @@
 
 ## 工具简介
 
-GhostTrack 是一个用 Python 编写的命令行 OSINT 小工具，整个项目核心只有一个脚本 `GhostTR.py`，通过交互式菜单提供四种信息查询能力：
+SpyEyes 是一个用 Python 编写的命令行 OSINT 小工具，整个项目核心只有一个脚本 `spyeyes.py`，通过交互式菜单提供四种信息查询能力：
 
 | 功能 | 数据来源 | 是否需要联网 |
 |---|---|---|
@@ -71,7 +71,7 @@ brew install python3 git
 # 2. 克隆项目
 cd ~/Documents/Code            # 选择你想放代码的目录
 git clone https://github.com/HunxByts/GhostTrack.git
-cd GhostTrack
+cd SpyEyes
 
 # 3. 创建虚拟环境并激活
 python3 -m venv .venv
@@ -81,14 +81,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # 5. 运行
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
-每次新开终端要再用，记得先 `cd GhostTrack && source .venv/bin/activate`。
+每次新开终端要再用，记得先 `cd SpyEyes && source .venv/bin/activate`。
 不想激活的话，直接用绝对路径调用 venv 里的 Python：
 
 ```bash
-~/Documents/Code/GhostTrack/.venv/bin/python ~/Documents/Code/GhostTrack/GhostTR.py
+~/Documents/Code/SpyEyes/.venv/bin/python ~/Documents/Code/SpyEyes/spyeyes.py
 ```
 
 ### Linux (Debian/Ubuntu) 安装
@@ -97,9 +97,9 @@ python3 GhostTR.py
 sudo apt-get update
 sudo apt-get install git python3 python3-pip
 git clone https://github.com/HunxByts/GhostTrack.git
-cd GhostTrack
+cd SpyEyes
 pip3 install -r requirements.txt   # 较新发行版可能也需要 venv，参考上面的 macOS 方案
-python3 GhostTR.py
+python3 spyeyes.py
 ```
 
 ### Termux (Android) 安装
@@ -108,9 +108,9 @@ python3 GhostTR.py
 pkg update
 pkg install git python
 git clone https://github.com/HunxByts/GhostTrack.git
-cd GhostTrack
+cd SpyEyes
 pip install -r requirements.txt
-python GhostTR.py
+python spyeyes.py
 ```
 
 ### Windows 安装
@@ -118,11 +118,11 @@ python GhostTR.py
 ```powershell
 # 在官网 https://www.python.org 安装 Python 3，安装时勾选 "Add to PATH"
 git clone https://github.com/HunxByts/GhostTrack.git
-cd GhostTrack
+cd SpyEyes
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python GhostTR.py
+python spyeyes.py
 ```
 
 ---
@@ -131,7 +131,7 @@ python GhostTR.py
 
 ### 首次启动 —— 选择语言
 
-第一次运行 `python3 GhostTR.py` 时会出现语言选择器：
+第一次运行 `python3 spyeyes.py` 时会出现语言选择器：
 
 ```
  ╔════════════════════════════════════════════╗
@@ -144,18 +144,18 @@ python GhostTR.py
  >>>
 ```
 
-选择后会保存到 `~/.ghosttrack/config.json`，下次自动用同一语言。后续可以随时通过菜单 `[ 8 ]` 切换。
+选择后会保存到 `~/.spyeyes/config.json`，下次自动用同一语言。后续可以随时通过菜单 `[ 8 ]` 切换。
 
 ### 主菜单
 
 ```
-       ________               __      ______                __
-      / ____/ /_  ____  _____/ /_    /_  __/________ ______/ /__
-     / / __/ __ \/ __ \/ ___/ __/_____/ / / ___/ __ `/ ___/ //_/
-    / /_/ / / / / /_/ (__  ) /_/_____/ / / /  / /_/ / /__/ ,<
-    \____/_/ /_/\____/____/\__/     /_/ /_/   \__,_/\___/_/|_|
-
-              [ + ]  C O D E   B Y  H U N X  [ + ]
+███████╗██████╗ ██╗   ██╗███████╗██╗   ██╗███████╗███████╗
+██╔════╝██╔══██╗╚██╗ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝██╔════╝
+███████╗██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ █████╗  ███████╗
+╚════██║██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ██╔══╝  ╚════██║
+███████║██║        ██║   ███████╗   ██║   ███████╗███████║
+╚══════╝╚═╝        ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚══════╝
+       👁  All-in-One OSINT Toolkit  ·  github.com/Akxan/SpyEyes  👁
 
 [ 1 ] IP 追踪
 [ 2 ] 查看本机 IP
@@ -183,8 +183,8 @@ python GhostTR.py
 不进入交互菜单，直接用 CLI 时也可指定语言：
 
 ```bash
-python3 GhostTR.py --lang en ip 8.8.8.8     # 强制英文输出
-python3 GhostTR.py --lang zh user torvalds  # 强制中文输出
+python3 spyeyes.py --lang en ip 8.8.8.8     # 强制英文输出
+python3 spyeyes.py --lang zh user torvalds  # 强制中文输出
 ```
 
 语言优先级：**`--lang` 标志 > 配置文件 > 环境变量 `LANG` > 默认（中文）**
@@ -486,13 +486,13 @@ python3 GhostTR.py --lang zh user torvalds  # 强制中文输出
 
 ```bash
 # 直接查询（输出彩色文本）
-python3 GhostTR.py ip 8.8.8.8
-python3 GhostTR.py myip
-python3 GhostTR.py phone +8613800138000
-python3 GhostTR.py user torvalds
-python3 GhostTR.py whois example.com
-python3 GhostTR.py mx gmail.com
-python3 GhostTR.py email someone@gmail.com
+python3 spyeyes.py ip 8.8.8.8
+python3 spyeyes.py myip
+python3 spyeyes.py phone +8613800138000
+python3 spyeyes.py user torvalds
+python3 spyeyes.py whois example.com
+python3 spyeyes.py mx gmail.com
+python3 spyeyes.py email someone@gmail.com
 ```
 
 ### 通用选项（在 subcommand 前后均可）
@@ -512,21 +512,21 @@ python3 GhostTR.py email someone@gmail.com
 | `--all` | 显示所有平台（含未命中），默认仅显示命中 |
 
 ```bash
-python3 GhostTR.py user torvalds --workers 50 --all
+python3 spyeyes.py user torvalds --workers 50 --all
 ```
 
 ### 示例：与 jq 联动
 
 ```bash
 # 查 IP 国家
-python3 GhostTR.py ip 8.8.8.8 --json | jq -r '.country'
+python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
 
 # 查电话号码归属
-python3 GhostTR.py phone +8613800138000 --json | jq -r '.location'
+python3 spyeyes.py phone +8613800138000 --json | jq -r '.location'
 
 # 批量查 IP
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 GhostTR.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 ```
 
@@ -534,8 +534,8 @@ done
 
 ```bash
 mkdir results
-python3 GhostTR.py user torvalds --save results
-python3 GhostTR.py mx gmail.com --save results
+python3 spyeyes.py user torvalds --save results
+python3 spyeyes.py mx gmail.com --save results
 ls results/
 # username_torvalds_20260429-123456.json
 # mx_gmail.com_20260429-123457.json
@@ -544,8 +544,8 @@ ls results/
 ### 帮助命令
 
 ```bash
-python3 GhostTR.py -h         # 总览
-python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
+python3 spyeyes.py -h         # 总览
+python3 spyeyes.py ip -h      # 查看 ip 子命令的所有参数
 ```
 
 ### 退出码（脚本编程友好）
@@ -574,17 +574,17 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 
 ---
 
-### Q3: 提示 `No such file or directory: GhostTR.py`
+### Q3: 提示 `No such file or directory: spyeyes.py`
 
-**原因**：当前目录不在 GhostTrack 项目里。
-**解决**：先 `cd /path/to/GhostTrack`，再运行 `python3 GhostTR.py`。可用 `pwd` 确认当前所在目录。
+**原因**：当前目录不在 SpyEyes 项目里。
+**解决**：先 `cd /path/to/SpyEyes`，再运行 `python3 spyeyes.py`。可用 `pwd` 确认当前所在目录。
 
 ---
 
 ### Q4: 选项 1 IP 查询返回 `KeyError: 'current_time'`
 
 **原因**：`ipwho.is` 在 2024 年后移除了 `timezone.current_time` 字段，旧代码尚未适配。
-**解决**：本项目的本地版本已经修复（删除了该行）。如果你拉的是上游原版，需要手动删除 `GhostTR.py` 中的最后一行 `print(f"{Wh} 偏移量 ..." ip_data["timezone"]["current_time"])`。
+**解决**：本项目的本地版本已经修复（删除了该行）。如果你拉的是上游原版，需要手动删除 `spyeyes.py` 中的最后一行 `print(f"{Wh} 偏移量 ..." ip_data["timezone"]["current_time"])`。
 
 ---
 
@@ -594,7 +594,7 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 **解决**：
 - 用 `--all` 看完整结果而非默认压缩输出
 - 试试更高 `--workers` 加速
-- 或者只看主流平台：`python3 GhostTR.py user xxx --json | jq '.[] | select(.) | .' | head`
+- 或者只看主流平台：`python3 spyeyes.py user xxx --json | jq '.[] | select(.) | .' | head`
 
 ---
 
@@ -604,7 +604,7 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 **解决**：
 - macOS / Linux：`export LANG=zh_CN.UTF-8`
 - Windows PowerShell：`chcp 65001`
-- 或者直接用英文 UI：`python3 GhostTR.py --lang en`
+- 或者直接用英文 UI：`python3 spyeyes.py --lang en`
 
 ---
 
@@ -617,11 +617,11 @@ python3 GhostTR.py ip -h      # 查看 ip 子命令的所有参数
 
 ### Q8: 想换语言怎么办？
 
-**菜单方式**：在主菜单选 `[ 8 ] 切换语言 / Language`，立即生效并保存到 `~/.ghosttrack/config.json`。
+**菜单方式**：在主菜单选 `[ 8 ] 切换语言 / Language`，立即生效并保存到 `~/.spyeyes/config.json`。
 
 **CLI 方式**：每次加 `--lang en` 或 `--lang zh`（覆盖一次，不写入配置）。
 
-**重置语言选择**：删除 `~/.ghosttrack/config.json`，下次启动会重新弹出语言选择器。
+**重置语言选择**：删除 `~/.spyeyes/config.json`，下次启动会重新弹出语言选择器。
 
 ---
 
@@ -648,7 +648,7 @@ python3 tools/build_platforms.py
 
 ## 法律与道德提醒
 
-GhostTrack 收集的均为**公开信息**，但请牢记：
+SpyEyes 收集的均为**公开信息**，但请牢记：
 
 - ❌ **不要**用本工具骚扰、跟踪或人肉搜索任何人
 - ❌ **不要**把查询到的他人个人信息公开发布或商用

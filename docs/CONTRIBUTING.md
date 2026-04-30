@@ -1,12 +1,12 @@
 # 贡献指南
 
-感谢你考虑为 GhostTrack-CN 做贡献！
+感谢你考虑为 SpyEyes 做贡献！
 
 ## 开发环境
 
 ```bash
-git clone https://github.com/Akxan/GhostTrack-CN.git
-cd GhostTrack-CN
+git clone https://github.com/Akxan/SpyEyes.git
+cd SpyEyes
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -46,7 +46,7 @@ pytest tests/ --cov=. --cov-report=term-missing
 
 ## Bug 反馈
 
-请在 [Issues](https://github.com/Akxan/GhostTrack-CN/issues) 提交，包含：
+请在 [Issues](https://github.com/Akxan/SpyEyes/issues) 提交，包含：
 
 1. **复现步骤**：完整命令和输入
 2. **预期 vs 实际**

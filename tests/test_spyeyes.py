@@ -1,4 +1,4 @@
-"""GhostTrack 单元测试。
+"""SpyEyes 单元测试。
 
 运行：
     pytest -q
@@ -11,10 +11,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# 让 tests/ 能 import 上层 GhostTR
+# 让 tests/ 能 import 上层 spyeyes
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import GhostTR as gt  # noqa: E402
+import spyeyes as gt  # noqa: E402
 
 
 # ------------------------------------------------------------------

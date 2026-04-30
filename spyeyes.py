@@ -1062,26 +1062,42 @@ def _clean_patterns(items) -> tuple:
 
 def _load_platforms_json(path: str) -> list:
     """从 JSON 文件加载平台定义，转换为 Platform NamedTuple。
-    过滤掉空 not_found / must_contain 模式，避免假阳性。"""
+    过滤掉空 not_found / must_contain 模式，避免假阳性。
+    防御性输入处理（文件被损坏 / 恶意改写时不让整个 _get_platforms 永久失败）：
+    - 文件不存在 / 解析错 / 编码错 → 返回 []
+    - 顶层不是 list（如 null / int / dict）→ 返回 []
+    - 单条 item 不是 dict / 缺 name / 缺 url / name 为 None → 跳过该条
+    """
     if not os.path.exists(path):
         return []
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             data = json.load(f)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return []
+    if not isinstance(data, list):
         return []
     out = []
     for item in data:
+        if not isinstance(item, dict):
+            continue
+        name = item.get('name')
+        url = item.get('url')
+        # 严格校验：name 必须非空 str，url 必须含 {} 占位符
+        if not isinstance(name, str) or not name.strip():
+            continue
+        if not isinstance(url, str) or '{' not in url:
+            continue
         try:
             out.append(Platform(
-                name=item['name'],
-                url=item['url'],
-                category=item.get('category', 'other'),
+                name=name,
+                url=url,
+                category=item.get('category', 'other') if isinstance(item.get('category'), str) else 'other',
                 not_found=_clean_patterns(item.get('not_found')),
                 must_contain=_clean_patterns(item.get('must_contain')),
-                regex_check=item.get('regex_check') or '',
+                regex_check=item.get('regex_check') or '' if isinstance(item.get('regex_check'), str) else '',
             ))
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ValueError):
             continue
     # JSON 内部去重（_merge_platforms 只去掉与 curated 重复的，不去 JSON 自身重复）
     return _dedup_platforms(out)
@@ -1220,12 +1236,17 @@ def _is_invalid_username(username: str) -> bool:
     """检查 username 是否有非法字符或形态。
     拒绝条件：
     - 含 _USERNAME_INVALID_CHARS 中任一字符
+    - 含 C0/C1 控制字符或 DEL（ord < 0x20 或 == 0x7f）—— 防日志注入 / 终端误显
     - 是 '.' / '..'（拼到任意 URL 模板都触发路径穿越式假命中：
       `https://github.com/.` 返回 GitHub 首页 → 不含 not_found 模式 → 假报「找到」）
     - 包含 '..' 子串（同上）
     - 以 '.' 开头或结尾（隐式路径片段）
     """
     if not username or any(c in _USERNAME_INVALID_CHARS for c in username):
+        return True
+    # 控制字符检测：覆盖 NUL / SOH / DEL 等无法在 URL 安全表达的字符
+    # 攻击场景：'admin\x00garbage' 在某些日志聚合器中被截断显示为 'admin'
+    if any(ord(c) < 0x20 or ord(c) == 0x7f for c in username):
         return True
     if username in ('.', '..') or '..' in username:
         return True
@@ -2173,7 +2194,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument('--all', action='store_true', dest='show_all',
                     help='Show all platforms incl. misses / 显示所有平台（含未命中）')
     sp.add_argument('--quick', action='store_true',
-                    help='Skip "other" long-tail (~720 platforms vs 2067, ~3-4x faster) / 跳过 other 长尾，仅扫主流 ~720 个')
+                    help='Skip "other" long-tail (~727 platforms vs 2067, ~3-4x faster) / 跳过 other 长尾，仅扫主流 ~727 个')
     sp.add_argument('--category', dest='category_filter',
                     help='Comma-separated categories: code,social,chinese,spanish,... / 用逗号分隔的类别')
 

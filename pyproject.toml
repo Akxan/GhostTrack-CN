@@ -13,7 +13,9 @@
 # 推荐使用方式：git clone + `python3 spyeyes.py`
 
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# setuptools>=77.0.1 是 PEP 639 SPDX `license = "Apache-2.0"` 字符串
+# + license-files 列表的最低版本（旧版会 ValueError: invalid pyproject.toml config）
+requires = ["setuptools>=77.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]

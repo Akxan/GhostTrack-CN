@@ -988,6 +988,82 @@ class TestPhoneIsValidSemantics:
         assert rec['ok'] is True
 
 
+class TestUsernameControlChars:
+    """Round 8 加固：控制字符（NUL / SOH / DEL 等）也应被拒绝。
+    攻击场景：'admin\\x00garbage' 在某些日志聚合器中被截断为 'admin'，
+    导致审计日志显示与实际查询不一致（防御性日志注入）。"""
+
+    def test_nul_byte_rejected(self):
+        assert gt._is_invalid_username('admin\x00') is True
+        assert gt._is_invalid_username('a\x00b') is True
+
+    def test_low_control_chars_rejected(self):
+        for c in ('\x01', '\x02', '\x08', '\x0e', '\x1b', '\x1f'):
+            assert gt._is_invalid_username(f'foo{c}bar') is True
+
+    def test_del_char_rejected(self):
+        assert gt._is_invalid_username('foo\x7fbar') is True
+
+    def test_normal_unicode_still_accepted(self):
+        """普通 Unicode（中文/日文）不应被控制字符检测误伤。"""
+        assert gt._is_invalid_username('张三') is False
+        assert gt._is_invalid_username('alice') is False
+
+
+class TestLoadPlatformsJsonRobust:
+    """Round 8 加固：_load_platforms_json 对损坏 / 恶意 JSON 必须不崩溃。"""
+
+    def test_non_list_top_level_returns_empty(self, tmp_path):
+        """JSON 顶层是 null / int / dict 时不应崩 TypeError。"""
+        for content in ('null', '42', '"x"', 'true', '{"k": "v"}'):
+            p = tmp_path / 'platforms.json'
+            p.write_text(content, encoding='utf-8')
+            assert gt._load_platforms_json(str(p)) == []
+
+    def test_item_with_null_name_skipped(self, tmp_path):
+        """单条 item name=null 不应让 _dedup_platforms 抛 AttributeError。"""
+        p = tmp_path / 'platforms.json'
+        p.write_text(json.dumps([
+            {'name': None, 'url': 'https://x.com/{}'},
+            {'name': 'GoodSite', 'url': 'https://good.com/{}'},
+        ]), encoding='utf-8')
+        result = gt._load_platforms_json(str(p))
+        # 坏条被跳过，好条保留
+        assert len(result) == 1
+        assert result[0].name == 'GoodSite'
+
+    def test_item_missing_name_skipped(self, tmp_path):
+        p = tmp_path / 'platforms.json'
+        p.write_text(json.dumps([
+            {'url': 'https://x.com/{}'},  # 无 name
+            {'name': 'OK', 'url': 'https://ok.com/{}'},
+        ]), encoding='utf-8')
+        result = gt._load_platforms_json(str(p))
+        assert len(result) == 1
+
+    def test_item_url_no_template_skipped(self, tmp_path):
+        """url 不含 {} 占位符的条目跳过（无法 format username）。"""
+        p = tmp_path / 'platforms.json'
+        p.write_text(json.dumps([
+            {'name': 'Bad', 'url': 'https://x.com/profile'},  # 无 {}
+            {'name': 'OK', 'url': 'https://ok.com/{}'},
+        ]), encoding='utf-8')
+        result = gt._load_platforms_json(str(p))
+        assert len(result) == 1
+        assert result[0].name == 'OK'
+
+    def test_non_dict_item_skipped(self, tmp_path):
+        p = tmp_path / 'platforms.json'
+        p.write_text(json.dumps([
+            'string-not-dict',
+            42,
+            None,
+            {'name': 'OK', 'url': 'https://ok.com/{}'},
+        ]), encoding='utf-8')
+        result = gt._load_platforms_json(str(p))
+        assert len(result) == 1
+
+
 class TestUsernameDotInjection:
     """Round 7 加固：username='.' / '..' / '.foo' / 'foo.' 拼到任意 URL 模板会
     触发假命中（github.com/. 返回首页 200 → 不含 not_found 模式 → 假报「找到」）。

@@ -654,9 +654,29 @@ def localized_country(code: Optional[str], en_name: str) -> str:
 # 通用打印工具
 # ====================================================================
 def display_width(s: str) -> int:
+    """估算字符串在等宽终端中的显示宽度。
+    覆盖：CJK / 全宽符号 / emoji（含 Astral Plane U+1F000+）/ 国旗 RIS 序列。
+    国旗 emoji（U+1F1E6-U+1F1FF Regional Indicator Symbol）由两个 RIS 组成，
+    多数终端渲染为宽度 2 —— 此实现按每对 RIS 算 width=2。"""
     width = 0
-    for ch in s:
+    skip_next = False
+    for i, ch in enumerate(s):
+        if skip_next:
+            skip_next = False
+            continue
         cp = ord(ch)
+        # 国旗 emoji: 两个连续 RIS (U+1F1E6-U+1F1FF) 算宽 2（占下个字符）
+        if 0x1F1E6 <= cp <= 0x1F1FF and i + 1 < len(s):
+            next_cp = ord(s[i + 1])
+            if 0x1F1E6 <= next_cp <= 0x1F1FF:
+                width += 2
+                skip_next = True
+                continue
+        # 标准 emoji 范围（Misc Symbols / Pictographs / Transport / Symbols）
+        if (0x1F000 <= cp <= 0x1FFFF or 0x2600 <= cp <= 0x27BF):
+            width += 2
+            continue
+        # CJK / Hangul / 全宽 ASCII / 全宽符号
         if (0x1100 <= cp <= 0x115F or 0x2E80 <= cp <= 0x9FFF or
                 0xA000 <= cp <= 0xA4CF or 0xAC00 <= cp <= 0xD7A3 or
                 0xF900 <= cp <= 0xFAFF or 0xFE30 <= cp <= 0xFE4F or

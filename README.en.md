@@ -158,35 +158,35 @@ cd SpyEyes && \
 python3 -m venv .venv && \
 source .venv/bin/activate && \
 pip install -r requirements.txt && \
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 ### Try it instantly
 
 ```bash
 # Look up Google DNS
-python3 spyeyes.py ip 8.8.8.8
+python3 -m spyeyes ip 8.8.8.8
 
 # Show your public IP
-python3 spyeyes.py myip
+python3 -m spyeyes myip
 
 # Parse a phone number
-python3 spyeyes.py phone +12025550100
+python3 -m spyeyes phone +12025550100
 
 # Scan a username
-python3 spyeyes.py user torvalds
+python3 -m spyeyes user torvalds
 
 # WHOIS
-python3 spyeyes.py whois example.com
+python3 -m spyeyes whois example.com
 
 # MX records
-python3 spyeyes.py mx gmail.com
+python3 -m spyeyes mx gmail.com
 
 # Email validation
-python3 spyeyes.py email someone@gmail.com
+python3 -m spyeyes email someone@gmail.com
 
 # JSON + save
-python3 spyeyes.py ip 8.8.8.8 --json --save results/
+python3 -m spyeyes ip 8.8.8.8 --json --save results/
 ```
 
 ---
@@ -240,21 +240,21 @@ pip install -r requirements.txt
 ### 1️⃣ Interactive menu mode
 
 ```bash
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 ### 2️⃣ CLI mode (script-friendly)
 
 ```bash
 # Basic
-python3 spyeyes.py <subcommand> <args> [--json] [--save DIR] [--no-color]
+python3 -m spyeyes <subcommand> <args> [--json] [--save DIR] [--no-color]
 
 # Pipe with jq
-python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
+python3 -m spyeyes ip 8.8.8.8 --json | jq -r '.country'
 
 # Bulk
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 -m spyeyes ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 ```
 
@@ -287,7 +287,10 @@ pip install -r requirements-dev.txt
 
 ```
 SpyEyes/
-├── spyeyes.py                  # Main script (full features + i18n + __version__)
+├── spyeyes/                    # Main package (v1.0.0+)
+│   ├── __init__.py             # Main code (all features + i18n + __version__)
+│   ├── __main__.py             # python -m spyeyes entry point
+│   └── data/platforms.json     # 2067-platform database
 ├── README.md                   # 中文 README
 ├── README.en.md                # English README (you are here)
 ├── LICENSE                     # Apache 2.0

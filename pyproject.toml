@@ -1,16 +1,19 @@
 # SpyEyes 包元数据
 #
-# 注意：当前是 single-module 项目（spyeyes.py 在根目录 + data/ 在根目录），
-# `pip install .` 会装 spyeyes.py 但**不会**装 data/platforms.json
-# → 装完后 _PLATFORMS_JSON 路径找不到文件，只剩 ~30 个 curated 平台。
+# 项目结构（v1.0.0 后重构为 proper package）:
+#   spyeyes/
+#     __init__.py    # 主代码（之前的 spyeyes.py）
+#     __main__.py    # python -m spyeyes 入口
+#     data/
+#       platforms.json   # 2067 平台数据库（自动打进 wheel）
 #
-# 完整 pip install 支持需要重构为 package（spyeyes/ 子目录 + spyeyes/data/）。
-# 本文件目前主要用途：
-#   - 声明 python_requires 阻止旧版 Python 安装
-#   - 提供 PyPI 发布的元数据基础（在重构为 package 后）
-#   - 让工具（ruff/mypy）找到配置
+# 安装方式:
+#   pip install .                    # 从 source
+#   pip install spyeyes              # 从 PyPI（待发布）
+#   spyeyes --version                # 安装后的命令
+#   python -m spyeyes ip 8.8.8.8     # 模块调用
 #
-# 推荐使用方式：git clone + `python3 spyeyes.py`
+# 仍支持: git clone + python -m spyeyes（无需 pip install）
 
 [build-system]
 # setuptools>=77.0.1 是 PEP 639 SPDX `license = "Apache-2.0"` 字符串
@@ -20,12 +23,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spyeyes"
-version = "1.0.0"  # 同步：spyeyes.py __version__ + docs/CHANGELOG.md + git tag
+version = "1.0.0"  # 同步：spyeyes/__init__.py __version__ + docs/CHANGELOG.md + git tag
 description = "All-in-One OSINT toolkit (bilingual zh/en) — IP / Phone / Username / WHOIS / MX / Email"
 readme = "README.md"
 requires-python = ">=3.10"
 # PEP 639 SPDX 表达式（替代弃用的 license = { text = ... } 和 license classifier）
-# setuptools 2027-02-18 之后将不再接受旧格式
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Akxan" }]
@@ -68,16 +70,16 @@ Repository = "https://github.com/Akxan/SpyEyes"
 "Bug Tracker" = "https://github.com/Akxan/SpyEyes/issues"
 Changelog = "https://github.com/Akxan/SpyEyes/blob/main/docs/CHANGELOG.md"
 
-# [project.scripts] 暂时禁用 —— pip install 不带 platforms.json，scripts entry
-# 会让用户误以为可用但实际只有 30 平台。等 package 重构后启用：
-# spyeyes = "spyeyes:main"
+[project.scripts]
+spyeyes = "spyeyes:main"
 
-[tool.setuptools]
-# 单文件项目：仅打包根目录的 spyeyes.py
-# 注意：data/platforms.json 不在 wheel 里（py-modules 不支持非 package data）
-# → pip install 后只剩 ~30 个 curated 平台。完整 PyPI 支持需重构为 package。
-# [tool.setuptools.package-data] 对 py-modules 不生效，已删除避免误导
-py-modules = ["spyeyes"]
+[tool.setuptools.packages.find]
+include = ["spyeyes*"]
+exclude = ["tests*", "tools*", "docs*"]
+
+[tool.setuptools.package-data]
+# 把 platforms.json 打进 wheel（之前 py-modules 时无法实现的关键修复）
+spyeyes = ["data/*.json"]
 
 [tool.ruff]
 line-length = 120

@@ -160,40 +160,40 @@ cd SpyEyes && \
 python3 -m venv .venv && \
 source .venv/bin/activate && \
 pip install -r requirements.txt && \
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 ### 立即体验
 
 ```bash
 # 查询 Google DNS 的 IP 信息
-python3 spyeyes.py ip 8.8.8.8
+python3 -m spyeyes ip 8.8.8.8
 
 # 查询本机出口 IP
-python3 spyeyes.py myip
+python3 -m spyeyes myip
 
 # 查询电话号码
-python3 spyeyes.py phone +8613800138000
+python3 -m spyeyes phone +8613800138000
 
 # 扫描用户名
-python3 spyeyes.py user torvalds
+python3 -m spyeyes user torvalds
 
 # WHOIS 查询
-python3 spyeyes.py whois example.com
+python3 -m spyeyes whois example.com
 
 # MX 记录
-python3 spyeyes.py mx gmail.com
+python3 -m spyeyes mx gmail.com
 
 # 邮箱验证
-python3 spyeyes.py email someone@gmail.com
+python3 -m spyeyes email someone@gmail.com
 
 # 查看历史记录（~/.spyeyes/history.jsonl 自动累积）
-python3 spyeyes.py history --limit 20            # 最近 20 条
-python3 spyeyes.py history --search torvalds     # 按 query 子串过滤
-python3 spyeyes.py history --json | jq           # JSON pipeline
+python3 -m spyeyes history --limit 20            # 最近 20 条
+python3 -m spyeyes history --search torvalds     # 按 query 子串过滤
+python3 -m spyeyes history --json | jq           # JSON pipeline
 
 # 输出 JSON + 保存到文件
-python3 spyeyes.py ip 8.8.8.8 --json --save results/
+python3 -m spyeyes ip 8.8.8.8 --json --save results/
 ```
 
 ---
@@ -248,7 +248,7 @@ pip install -r requirements.txt
 ### 1️⃣ 交互菜单模式
 
 ```bash
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 ```
@@ -277,21 +277,21 @@ python3 spyeyes.py
 
 ```bash
 # 基本用法
-python3 spyeyes.py <subcommand> <args...> [--json] [--save DIR] [--no-color]
+python3 -m spyeyes <subcommand> <args...> [--json] [--save DIR] [--no-color]
 
 # 与 jq 联动（管道处理）
-python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
-python3 spyeyes.py phone +8613800138000 --json | jq -r '.location'
+python3 -m spyeyes ip 8.8.8.8 --json | jq -r '.country'
+python3 -m spyeyes phone +8613800138000 --json | jq -r '.location'
 
 # 批量查 IP
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 -m spyeyes ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 
 # 自动保存所有查询结果
 mkdir -p results
-python3 spyeyes.py user torvalds --save results
-python3 spyeyes.py mx gmail.com --save results
+python3 -m spyeyes user torvalds --save results
+python3 -m spyeyes mx gmail.com --save results
 ```
 
 ### 3️⃣ 完整教程
@@ -332,7 +332,10 @@ pip install -r requirements-dev.txt
 
 ```
 SpyEyes/
-├── spyeyes.py                  # 主脚本（含全部功能 + i18n + __version__）
+├── spyeyes/                    # 主包（v1.0.0 起）
+│   ├── __init__.py             # 主代码（含全部功能 + i18n + __version__）
+│   ├── __main__.py             # python -m spyeyes 入口
+│   └── data/platforms.json     # 2067 平台数据库
 ├── README.md                   # 你正在看的这个（中文入口）
 ├── README.en.md                # English entry
 ├── LICENSE                     # Apache 2.0

@@ -1,0 +1,17 @@
+# GitHub Pages 配置（Jekyll）
+# 启用方式：Settings → Pages → Source: Deploy from a branch → main / docs/
+# 启用后访问: https://akxan.github.io/SpyEyes/
+
+title: SpyEyes
+description: All-in-One OSINT Toolkit · 2067 平台 · 中英双语 · 11-round audit hardened
+theme: jekyll-theme-cayman
+
+# 仓库信息
+repository: Akxan/SpyEyes
+
+# 默认在 Pages 显示的文件
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default

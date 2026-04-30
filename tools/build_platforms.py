@@ -8,7 +8,7 @@
   - Sherlock (~400 entries)
   - WhatsMyName (~700+ entries)
 
-过滤、去重、按 TLD/关键词分类后保存为 data/platforms.json。
+过滤、去重、按 TLD/关键词分类后保存为 spyeyes/data/platforms.json。
 
 Usage:
     python3 tools/build_platforms.py
@@ -46,6 +46,7 @@ FETCH_BACKOFF_BASE = 2.0  # 秒，指数退避
 
 OUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "spyeyes",
     "data",
     "platforms.json",
 )

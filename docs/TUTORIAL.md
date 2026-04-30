@@ -29,7 +29,7 @@
 
 ## 工具简介
 
-SpyEyes 是一个用 Python 编写的命令行 OSINT 小工具，整个项目核心只有一个脚本 `spyeyes.py`，通过交互式菜单提供四种信息查询能力：
+SpyEyes 是一个用 Python 编写的命令行 OSINT 工具，作为 Python 包发布（`spyeyes/` 含 `__init__.py` + `__main__.py` + `data/`），通过交互式菜单提供以下信息查询能力：
 
 | 功能 | 数据来源 | 是否需要联网 |
 |---|---|---|
@@ -81,14 +81,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # 5. 运行
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 每次新开终端要再用，记得先 `cd SpyEyes && source .venv/bin/activate`。
 不想激活的话，直接用绝对路径调用 venv 里的 Python：
 
 ```bash
-~/Documents/Code/SpyEyes/.venv/bin/python ~/Documents/Code/SpyEyes/spyeyes.py
+~/Documents/Code/SpyEyes/.venv/bin/python -m spyeyes
 ```
 
 ### Linux (Debian/Ubuntu) 安装
@@ -99,7 +99,7 @@ sudo apt-get install git python3 python3-pip
 git clone https://github.com/Akxan/SpyEyes.git
 cd SpyEyes
 pip3 install -r requirements.txt   # 较新发行版可能也需要 venv，参考上面的 macOS 方案
-python3 spyeyes.py
+python3 -m spyeyes
 ```
 
 ### Termux (Android) 安装
@@ -110,7 +110,7 @@ pkg install git python
 git clone https://github.com/Akxan/SpyEyes.git
 cd SpyEyes
 pip install -r requirements.txt
-python spyeyes.py
+python -m spyeyes
 ```
 
 ### Windows 安装
@@ -122,7 +122,7 @@ cd SpyEyes
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python spyeyes.py
+python -m spyeyes
 ```
 
 ---
@@ -131,7 +131,7 @@ python spyeyes.py
 
 ### 首次启动 —— 选择语言
 
-第一次运行 `python3 spyeyes.py` 时会出现语言选择器：
+第一次运行 `python3 -m spyeyes` 时会出现语言选择器：
 
 ```
  ╔════════════════════════════════════════════╗
@@ -183,8 +183,8 @@ python spyeyes.py
 不进入交互菜单，直接用 CLI 时也可指定语言：
 
 ```bash
-python3 spyeyes.py --lang en ip 8.8.8.8     # 强制英文输出
-python3 spyeyes.py --lang zh user torvalds  # 强制中文输出
+python3 -m spyeyes --lang en ip 8.8.8.8     # 强制英文输出
+python3 -m spyeyes --lang zh user torvalds  # 强制中文输出
 ```
 
 语言优先级：**`--lang` 标志 > 配置文件 > 环境变量 `LANG` > 默认（中文）**
@@ -487,13 +487,13 @@ python3 spyeyes.py --lang zh user torvalds  # 强制中文输出
 
 ```bash
 # 直接查询（输出彩色文本）
-python3 spyeyes.py ip 8.8.8.8
-python3 spyeyes.py myip
-python3 spyeyes.py phone +8613800138000
-python3 spyeyes.py user torvalds
-python3 spyeyes.py whois example.com
-python3 spyeyes.py mx gmail.com
-python3 spyeyes.py email someone@gmail.com
+python3 -m spyeyes ip 8.8.8.8
+python3 -m spyeyes myip
+python3 -m spyeyes phone +8613800138000
+python3 -m spyeyes user torvalds
+python3 -m spyeyes whois example.com
+python3 -m spyeyes mx gmail.com
+python3 -m spyeyes email someone@gmail.com
 ```
 
 ### 通用选项（在 subcommand 前后均可）
@@ -513,21 +513,21 @@ python3 spyeyes.py email someone@gmail.com
 | `--all` | 显示所有平台（含未命中），默认仅显示命中 |
 
 ```bash
-python3 spyeyes.py user torvalds --workers 50 --all
+python3 -m spyeyes user torvalds --workers 50 --all
 ```
 
 ### 示例：与 jq 联动
 
 ```bash
 # 查 IP 国家
-python3 spyeyes.py ip 8.8.8.8 --json | jq -r '.country'
+python3 -m spyeyes ip 8.8.8.8 --json | jq -r '.country'
 
 # 查电话号码归属
-python3 spyeyes.py phone +8613800138000 --json | jq -r '.location'
+python3 -m spyeyes phone +8613800138000 --json | jq -r '.location'
 
 # 批量查 IP
 for ip in 8.8.8.8 1.1.1.1 9.9.9.9; do
-  python3 spyeyes.py ip "$ip" --json | jq -r '.ip + " -> " + .country'
+  python3 -m spyeyes ip "$ip" --json | jq -r '.ip + " -> " + .country'
 done
 ```
 
@@ -535,8 +535,8 @@ done
 
 ```bash
 mkdir results
-python3 spyeyes.py user torvalds --save results
-python3 spyeyes.py mx gmail.com --save results
+python3 -m spyeyes user torvalds --save results
+python3 -m spyeyes mx gmail.com --save results
 ls results/
 # username_torvalds_20260429-123456.json
 # mx_gmail.com_20260429-123457.json
@@ -545,8 +545,8 @@ ls results/
 ### 帮助命令
 
 ```bash
-python3 spyeyes.py -h         # 总览
-python3 spyeyes.py ip -h      # 查看 ip 子命令的所有参数
+python3 -m spyeyes -h         # 总览
+python3 -m spyeyes ip -h      # 查看 ip 子命令的所有参数
 ```
 
 ### 退出码（脚本编程友好）
@@ -575,10 +575,11 @@ python3 spyeyes.py ip -h      # 查看 ip 子命令的所有参数
 
 ---
 
-### Q3: 提示 `No such file or directory: spyeyes.py`
+### Q3: 提示 `No module named spyeyes`
 
-**原因**：当前目录不在 SpyEyes 项目里。
-**解决**：先 `cd /path/to/SpyEyes`，再运行 `python3 spyeyes.py`。可用 `pwd` 确认当前所在目录。
+**原因**：当前目录不在 SpyEyes 项目里，或没装好依赖。
+**解决**：先 `cd /path/to/SpyEyes` + `source .venv/bin/activate`，再运行 `python3 -m spyeyes`。
+或者 `pip install .` 后任意目录直接 `spyeyes ...`。
 
 ---
 
@@ -588,7 +589,7 @@ python3 spyeyes.py ip -h      # 查看 ip 子命令的所有参数
 **解决**：
 - 用 `--all` 看完整结果而非默认压缩输出
 - 试试更高 `--workers` 加速
-- 或者只看主流平台：`python3 spyeyes.py user xxx --json | jq '.[] | select(.) | .' | head`
+- 或者只看主流平台：`python3 -m spyeyes user xxx --json | jq '.[] | select(.) | .' | head`
 
 ---
 
@@ -598,7 +599,7 @@ python3 spyeyes.py ip -h      # 查看 ip 子命令的所有参数
 **解决**：
 - macOS / Linux：`export LANG=zh_CN.UTF-8`
 - Windows PowerShell：`chcp 65001`
-- 或者直接用英文 UI：`python3 spyeyes.py --lang en`
+- 或者直接用英文 UI：`python3 -m spyeyes --lang en`
 
 ---
 

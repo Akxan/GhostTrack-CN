@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Akxan/SpyEyes/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/SpyEyes)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-99%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-2067-orange.svg)](data/platforms.json)
@@ -323,7 +323,8 @@ SpyEyes/
 ├── spyeyes.py                  # 主脚本（1400 行，含全部功能 + i18n）
 ├── README.md                   # 你正在看的这个（中文入口）
 ├── README.en.md                # English entry
-├── LICENSE                     # MIT
+├── LICENSE                     # Apache 2.0
+├── NOTICE                      # 版权声明
 ├── requirements.txt            # 运行依赖
 ├── docs/                       # 📚 所有文档
 │   ├── TUTORIAL.md             # 详细教程
@@ -379,7 +380,9 @@ SpyEyes/
 
 ## 📄 许可证
 
-本项目采用 **[MIT License](LICENSE)** 开源。
+本项目采用 **[Apache License 2.0](LICENSE)** 开源。
+
+Apache 2.0 比 MIT 多了**明确的专利授权**和**商标保护**，对二次开发和商业使用更安全。
 
 任何人可以自由使用、修改、分发，包括商业用途，但需保留版权声明。
 

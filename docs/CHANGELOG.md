@@ -60,7 +60,7 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - ruff / mypy / bandit / pytest 全部通过
 - GitHub Actions CI（macOS+Ubuntu × Python 3.10-3.13）
 - Dependabot 自动依赖升级
-- MIT License
+- Apache License 2.0（含明确专利授权 + 商标保护）
 
 ### 🎨 UX
 

@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml/badge.svg)](https://github.com/Akxan/SpyEyes/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Akxan/SpyEyes/branch/main/graph/badge.svg)](https://codecov.io/gh/Akxan/SpyEyes)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-99%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-2067-orange.svg)](data/platforms.json)
@@ -285,7 +285,8 @@ SpyEyes/
 ├── spyeyes.py                  # Main script (1400 lines, includes i18n)
 ├── README.md                   # 中文 README
 ├── README.en.md                # English README (you are here)
-├── LICENSE                     # MIT
+├── LICENSE                     # Apache 2.0
+├── NOTICE                      # 版权声明
 ├── requirements.txt            # Runtime deps
 ├── docs/                       # 📚 All documentation
 │   ├── TUTORIAL.md             # Detailed tutorial (Chinese)
@@ -347,7 +348,7 @@ Found a security issue? Please report responsibly via [SECURITY.md](docs/SECURIT
 
 ## 📄 License
 
-[**MIT License**](LICENSE) — free for personal and commercial use, just keep the copyright notice.
+[**Apache License 2.0**](LICENSE) — free for personal and commercial use, with explicit patent grant and trademark protection. See [NOTICE](NOTICE) for required attribution.
 
 ---
 

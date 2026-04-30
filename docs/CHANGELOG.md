@@ -12,9 +12,9 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 代理支持 (`--proxy http://...` / SOCKS5)
 - 批量输入模式 (`--batch ips.txt`)
 - HIBP (Have I Been Pwned) 邮箱泄露集成
-- PyPI 发布 (`pip install spyeyes`)
+- PyPI 发布 (`pip install spyeyes`)（需 package 重构以正确包含 `data/platforms.json`）
 - Docker 镜像
-- IDN（中文 / 韩文 / 日文域名）通过 punycode 支持
+- 国旗 emoji 在终端的显示宽度修正（当前 `display_width` 8 段 if 链不准确）
 
 ---
 

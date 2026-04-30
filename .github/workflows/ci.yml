@@ -7,15 +7,50 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# 同分支重复 push 时取消旧 build，节省 CI 配额
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install dev tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff mypy bandit
+      - name: ruff
+        run: ruff check .
+      - name: mypy
+        run: mypy spyeyes.py --ignore-missing-imports
+      - name: bandit
+        run: bandit -r spyeyes.py -ll
+
   test:
     name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # 减少冗余：Linux 跑全 4 版本，macOS/Windows 只跑最低和最高
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        include:
+          - { os: ubuntu-latest,  python-version: '3.10' }
+          - { os: ubuntu-latest,  python-version: '3.11' }
+          - { os: ubuntu-latest,  python-version: '3.12' }
+          - { os: ubuntu-latest,  python-version: '3.13' }
+          - { os: macos-latest,   python-version: '3.10' }
+          - { os: macos-latest,   python-version: '3.13' }
+          - { os: windows-latest, python-version: '3.10' }
+          - { os: windows-latest, python-version: '3.13' }
 
     steps:
       - name: Checkout
@@ -31,10 +66,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov
+          pip install pytest pytest-cov pytest-timeout
 
       - name: Run pytest
-        run: pytest tests/ -v --cov=. --cov-report=term --cov-report=xml
+        # --cov=spyeyes 替代 --cov=. 避免把 .venv/.mypy_cache 纳入覆盖率
+        # --timeout=15 防 ReDoS 测试卡死整个 CI
+        run: pytest tests/ -v --cov=spyeyes --cov-report=term --cov-report=xml --timeout=15
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'

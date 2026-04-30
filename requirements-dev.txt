@@ -1,0 +1,9 @@
+# 开发与测试依赖（运行依赖见 requirements.txt）
+-r requirements.txt
+
+pytest>=8.0
+pytest-cov>=5.0
+pytest-timeout>=2.3
+ruff>=0.5
+mypy>=1.10
+bandit>=1.7

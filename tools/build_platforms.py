@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """
 构建平台数据库 / Build platforms database.
 
@@ -11,10 +12,16 @@
 
 Usage:
     python3 tools/build_platforms.py
+    python3 tools/build_platforms.py --cache-dir .cache  # 缓存上游 JSON
+    python3 tools/build_platforms.py --no-fetch          # 离线（要求已缓存）
 """
 
+import argparse
 import json
 import os
+import sys
+import tempfile
+import time
 from collections import Counter
 from urllib.parse import urlparse
 
@@ -25,6 +32,17 @@ SOURCES = {
     "sherlock":     "https://raw.githubusercontent.com/sherlock-project/sherlock/master/sherlock_project/resources/data.json",
     "whatsmyname":  "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json",
 }
+
+# 名字相同时的优先级（评分相同时取此顺序）：
+# Maigret > WhatsMyName > Sherlock —— Maigret 维护最积极、规则最完整
+SOURCE_PRIORITY = {"maigret": 3, "whatsmyname": 2, "sherlock": 1}
+
+# 每平台保留的检测模式数（节省 platforms.json 体积；多余模式精度收益边际递减）
+MAX_PATTERNS_PER_PLATFORM = 3
+
+# fetch 重试参数
+FETCH_RETRIES = 3
+FETCH_BACKOFF_BASE = 2.0  # 秒，指数退避
 
 OUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -201,25 +219,22 @@ def get_tld(url: str) -> str:
 
 def categorize(name: str, url: str) -> str:
     """分类优先级：
-       1. 中文/西语关键词（CSDN/V2EX/Wallapop 等知名站点）
-       2. TLD 地区（.cn/.tw/.es/.mx 等）
-       3. 主题关键词（github→code, twitter→social...）
-       4. 'other' 兜底
+       1. 成人/约会站点（避免被 'social' 等误归）
+       2. 中文/西语关键词（CSDN/V2EX/Wallapop 等知名站点）
+       3. TLD 地区（.cn/.tw/.es/.mx 等）
+       4. 主题关键词（github→code, twitter→social...）
+       5. 'other' 兜底
     """
     haystack = (name + " " + url).lower()
-    # 1. 成人 / 约会站点优先（避免被 'social' 等误归）
     if any(kw in haystack for kw in ADULT_KEYWORDS):
         return "adult"
-    # 2. 区域关键词
     if any(kw in haystack for kw in CHINESE_KEYWORDS):
         return "chinese"
     if any(kw in haystack for kw in SPANISH_KEYWORDS):
         return "spanish"
-    # 2. TLD 地区判定
     tld = get_tld(url)
     if tld in TLD_CATEGORY:
         return TLD_CATEGORY[tld]
-    # 3. 主题分类兜底
     for cat, keywords in CATEGORY_RULES:
         for kw in keywords:
             if kw in haystack:
@@ -231,11 +246,22 @@ def normalize_url(url: str) -> str:
     return url.replace("{username}", "{}").replace("{account}", "{}")
 
 
-def fetch(url: str) -> dict:
+def fetch(url: str, retries: int = FETCH_RETRIES) -> dict:
+    """带重试 + 指数退避的 GET。任意上游 5xx/超时不再让整个构建挂掉。"""
     print(f"  fetching {url} ...")
-    r = requests.get(url, timeout=60)
-    r.raise_for_status()
-    return r.json()
+    last_err: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            r = requests.get(url, timeout=60)
+            r.raise_for_status()
+            return r.json()
+        except (requests.RequestException, ValueError) as e:
+            last_err = e
+            if attempt < retries:
+                backoff = FETCH_BACKOFF_BASE ** (attempt - 1)
+                print(f"    attempt {attempt}/{retries} failed: {e} — retry in {backoff:.0f}s")
+                time.sleep(backoff)
+    raise RuntimeError(f"fetch failed after {retries} attempts: {url}") from last_err
 
 
 def parse_maigret(raw: dict) -> list:
@@ -253,8 +279,8 @@ def parse_maigret(raw: dict) -> list:
         out.append({
             "name": name,
             "url": normalize_url(url),
-            "not_found": [s for s in (info.get("absenceStrs") or []) if isinstance(s, str)][:3],
-            "must_contain": [s for s in (info.get("presenseStrs") or []) if isinstance(s, str)][:3],
+            "not_found": [s for s in (info.get("absenceStrs") or []) if isinstance(s, str)][:MAX_PATTERNS_PER_PLATFORM],
+            "must_contain": [s for s in (info.get("presenseStrs") or []) if isinstance(s, str)][:MAX_PATTERNS_PER_PLATFORM],
             "regex_check": regex if isinstance(regex, str) else "",
         })
     return out
@@ -274,7 +300,7 @@ def parse_sherlock(raw: dict) -> list:
         if isinstance(em, str):
             not_found = [em]
         elif isinstance(em, list):
-            not_found = [s for s in em if isinstance(s, str)][:3]
+            not_found = [s for s in em if isinstance(s, str)][:MAX_PATTERNS_PER_PLATFORM]
         regex = info.get("regexCheck") or ""
         out.append({
             "name": name,
@@ -316,9 +342,11 @@ def parse_wmn(raw: dict) -> list:
 
 
 def merge_dedup(*sources_lists) -> list:
-    """名字去重，名字相同时优先保留有更多检测模式的版本。"""
-    by_name = {}
+    """名字去重：(检测模式数量, 上游优先级) 高者胜出。
+    上游优先级: maigret > whatsmyname > sherlock（见 SOURCE_PRIORITY）"""
+    by_name: dict = {}
     for src_name, lst in sources_lists:
+        new_pri = SOURCE_PRIORITY.get(src_name, 0)
         for item in lst:
             key = item["name"].lower().strip()
             if not key:
@@ -327,19 +355,59 @@ def merge_dedup(*sources_lists) -> list:
             if existing is None:
                 item["_source"] = src_name
                 by_name[key] = item
-            else:
-                # 保留模式多的版本
-                cur_score = len(existing.get("not_found", [])) + len(existing.get("must_contain", []))
-                new_score = len(item.get("not_found", [])) + len(item.get("must_contain", []))
-                if new_score > cur_score:
-                    item["_source"] = src_name
-                    by_name[key] = item
+                continue
+            cur_score = len(existing.get("not_found", [])) + len(existing.get("must_contain", []))
+            cur_pri = SOURCE_PRIORITY.get(existing.get("_source"), 0)
+            new_score = len(item.get("not_found", [])) + len(item.get("must_contain", []))
+            if (new_score, new_pri) > (cur_score, cur_pri):
+                item["_source"] = src_name
+                by_name[key] = item
     return list(by_name.values())
 
 
-def build():
+def atomic_write_json(path: str, data) -> None:
+    """原子写入 JSON：先写临时文件，再 os.replace（POSIX 原子）。
+    避免写入中途断电/Ctrl+C 留下损坏的 platforms.json。"""
+    parent = os.path.dirname(path) or "."
+    os.makedirs(parent, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(prefix=".platforms.", suffix=".json", dir=parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=1)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
+
+def _cache_path(cache_dir: str, source_name: str) -> str:
+    return os.path.join(cache_dir, f"{source_name}.json")
+
+
+def fetch_all(cache_dir: str | None = None, no_fetch: bool = False) -> dict:
+    """拉取或从缓存加载所有上游。可独立测试。"""
+    raw = {}
+    if cache_dir:
+        os.makedirs(cache_dir, exist_ok=True)
+    for name, url in SOURCES.items():
+        cache_file = _cache_path(cache_dir, name) if cache_dir else None
+        if no_fetch:
+            if not cache_file or not os.path.exists(cache_file):
+                raise RuntimeError(f"--no-fetch but no cache for {name}: {cache_file}")
+            with open(cache_file, encoding="utf-8") as f:
+                raw[name] = json.load(f)
+        else:
+            data = fetch(url)
+            raw[name] = data
+            if cache_file:
+                atomic_write_json(cache_file, data)
+    return raw
+
+
+def build(cache_dir: str | None = None, no_fetch: bool = False) -> int:
     print("\n=== Fetching upstream sources ===")
-    raw = {k: fetch(u) for k, u in SOURCES.items()}
+    raw = fetch_all(cache_dir=cache_dir, no_fetch=no_fetch)
 
     print("\n=== Parsing ===")
     maigret = parse_maigret(raw["maigret"])
@@ -361,7 +429,6 @@ def build():
     for item in merged:
         item["category"] = categorize(item["name"], item["url"])
         item.pop("_source", None)
-        # 确保 regex_check 字段存在（从 parse_wmn 出来的没有）
         item.setdefault("regex_check", "")
 
     by_cat = Counter(p["category"] for p in merged)
@@ -369,11 +436,30 @@ def build():
     for cat, n in by_cat.most_common():
         print(f"    {cat:10} {n}")
 
-    os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(merged, f, ensure_ascii=False, indent=1)
+    atomic_write_json(OUT_PATH, merged)
     print(f"\nWrote {len(merged)} platforms to {OUT_PATH} ({os.path.getsize(OUT_PATH)/1024:.1f} KB)")
+    return len(merged)
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Build SpyEyes platforms.json from upstream OSINT sources")
+    p.add_argument("--cache-dir", help="Cache upstream JSON to this directory (for re-runs)")
+    p.add_argument("--no-fetch", action="store_true", help="Skip network; require cached files (--cache-dir required)")
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv)
+    if args.no_fetch and not args.cache_dir:
+        print("ERROR: --no-fetch requires --cache-dir", file=sys.stderr)
+        return 2
+    try:
+        build(cache_dir=args.cache_dir, no_fetch=args.no_fetch)
+    except RuntimeError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    build()
+    sys.exit(main())

@@ -1738,7 +1738,6 @@ def _maybe_save(target: Optional[str], prefix: str, data: Any) -> None:
         return
     target_lower = target.lower()
     is_md_file = target_lower.endswith('.md')
-    is_json_file = target_lower.endswith('.json')
     # 目录判定：必须显式（尾随 / 或路径已存在为目录）。
     # 之前 `not (is_md_file or is_json_file)` 会让 `--save somefile`（无后缀单文件）
     # 被错判为目录，导致 os.makedirs('somefile') 把用户期望的文件创建成空目录。

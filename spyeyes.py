@@ -285,6 +285,8 @@ TRANSLATIONS: dict = {
         'err.unknown_category': 'Unknown category: {unknown}. Valid: {valid}',
         'err.username_too_long': 'Username too long (max {max} chars) — ReDoS protection',
         'err.invalid_ip':       'Invalid IP address: {ip}',
+        'err.invalid_domain':   'Invalid domain: {domain}',
+        'err.phone_invalid':    'Phone number is not a possible number',
         'msg.progress':         'Scanning',
         'msg.found':            'found',
         'msg.no_history':       '(no history yet — run a query first)',
@@ -428,6 +430,8 @@ TRANSLATIONS: dict = {
         'err.unknown_category': '未知类别：{unknown}。有效类别：{valid}',
         'err.username_too_long': '用户名过长（最多 {max} 字符）— ReDoS 防护',
         'err.invalid_ip':       'IP 地址不合法：{ip}',
+        'err.invalid_domain':   '域名格式不合法：{domain}',
+        'err.phone_invalid':    '号码格式不可解析',
         'msg.progress':         '扫描中',
         'msg.found':            '已命中',
         'msg.no_history':       '（暂无历史 —— 先跑一次查询试试）',
@@ -715,6 +719,11 @@ def track_phone(number: str, default_region: str = 'CN') -> dict:
         parsed = phonenumbers.parse(number, default_region)
     except NumberParseException as e:
         return {'_error': t('err.parse_phone', e=e)}
+
+    # `parse('+1')` 等形似号码会成功但 is_possible_number=False；返回 _error
+    # 避免 _record_history 把它记为成功
+    if not phonenumbers.is_possible_number(parsed):
+        return {'_error': t('err.phone_invalid')}
 
     lib_lang = 'zh' if _lang == 'zh' else 'en'
     return {
@@ -1178,6 +1187,11 @@ def _check_username(platform: 'Platform', username: str, timeout: float):
     3. **stream + 64KB 读取**：需 body 检测的只读前 64 KB
     4. **WAF 检测**：识别 Cloudflare/AWS WAF 等拦截，避免误报
     """
+    # 深度防御：track_username 入口已限制长度，但 _check_username 是公开的私有
+    # API（_前缀），测试或未来扩展可能直接调用 → 在这里再做一次防护
+    if len(username) > MAX_USERNAME_LENGTH:
+        return platform, None, STATUS_INVALID_USERNAME
+
     # ---- 1. URL 模板与 regex 预过滤（不发请求）----
     try:
         full_url = platform.url.format(username)
@@ -1355,9 +1369,10 @@ def track_username(username: str, *, max_workers: int = 100, timeout: float = 5,
 def whois_lookup(domain: str) -> dict:
     if not HAS_WHOIS:
         return {'_error': t('err.no_whois')}
-    domain = (domain or '').strip()
-    if not domain:
-        return {'_error': t('err.empty_input')}
+    normalized = _normalize_domain(domain)
+    if normalized is None:
+        return {'_error': t('err.invalid_domain', domain=(domain or '').strip()[:80])}
+    domain = normalized
     try:
         w = whois.whois(domain)
     except Exception as e:
@@ -1382,6 +1397,10 @@ def whois_lookup(domain: str) -> dict:
 def mx_lookup(domain: str) -> dict:
     if not HAS_DNS:
         return {'_error': t('err.no_dns')}
+    normalized = _normalize_domain(domain)
+    if normalized is None:
+        return {'_error': t('err.invalid_domain', domain=(domain or '').strip()[:80])}
+    domain = normalized
     try:
         answers = dns.resolver.resolve(domain, 'MX')
     except dns.resolver.NXDOMAIN:
@@ -1399,6 +1418,18 @@ def mx_lookup(domain: str) -> dict:
 
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$')
 
+# 域名基本格式校验（whois/mx 入口防 traceback 泄漏）
+DOMAIN_RE = re.compile(r'^(?=.{1,253}$)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$')
+
+
+def _normalize_domain(domain: str) -> Optional[str]:
+    """规范化并校验 domain。非法返回 None；合法返回 lower-case 形式。
+    防御目标：拒绝换行注入 / URL 形式 / 路径片段，避免直接进 dns.resolver / whois.whois。"""
+    domain = (domain or '').strip().lower()
+    if not domain or not DOMAIN_RE.match(domain):
+        return None
+    return domain
+
 
 def email_validate(email: str) -> dict:
     email = (email or '').strip()
@@ -1412,7 +1443,17 @@ def email_validate(email: str) -> dict:
     mx = mx_lookup(domain)
     if '_error' in mx:
         result['mx_valid'] = False
-        result['mx_error'] = mx['_error']
+        # 收敛 mx_error 为已知枚举（避免 dns_failed 嵌入 server IP / 内部 socket
+        # 错误细节泄漏到 --json 输出）；原始错误进 'mx_error_detail' 仅供调试
+        err_msg = mx['_error']
+        if 'NXDOMAIN' in err_msg or 'nxdomain' in err_msg or '不存在' in err_msg or 'does not exist' in err_msg.lower():
+            result['mx_error'] = 'nxdomain'
+        elif 'no_mx' in err_msg or 'no MX' in err_msg or '没有 MX' in err_msg:
+            result['mx_error'] = 'no_mx'
+        elif 'invalid' in err_msg.lower() or '不合法' in err_msg:
+            result['mx_error'] = 'invalid_domain'
+        else:
+            result['mx_error'] = 'dns_failed'
     else:
         result['mx_valid'] = True
         result['mx_records'] = mx['records']

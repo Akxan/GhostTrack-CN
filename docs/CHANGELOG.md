@@ -63,9 +63,10 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### ⚡ Performance
 
-- **PLATFORMS 懒加载**：PEP 562 模块级 `__getattr__`，首次访问才合并 600KB JSON
-  - `myip` / `--help` / `--version` 启动从 ~150ms → ~30ms
-  - 测试代码无需改动（`gt.PLATFORMS` 仍可直接访问）
+- **PLATFORMS 懒加载**：PEP 562 模块级 `__getattr__`，首次访问才合并 platforms.json
+  - 不扫平台的子命令（`myip` / `--version` / `history`）跳过 ~5ms 的 JSON 解析
+  - 总启动时间仍由 phonenumbers/requests 等第三方导入主导（~210ms）—— 单独优化收益有限
+  - 测试代码无需改动（`gt.PLATFORMS` 仍可直接访问，触发懒加载）
 
 ### 🛠 Build & CI
 

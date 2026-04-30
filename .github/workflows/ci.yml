@@ -25,16 +25,13 @@ jobs:
       - name: Install dev tools
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          # types-requests: mypy 在装了 requests 但没装 stub 时报 [import-untyped]
-          # （--ignore-missing-imports 只覆盖 [import-not-found] 一类）
-          pip install ruff mypy bandit types-requests
+          pip install -r requirements-dev.txt
       - name: ruff
         run: ruff check .
       - name: mypy
-        run: mypy spyeyes.py --ignore-missing-imports
+        run: mypy spyeyes.py tools/build_platforms.py --ignore-missing-imports
       - name: bandit
-        run: bandit -r spyeyes.py -ll
+        run: bandit -r spyeyes.py tools/ -ll
 
   test:
     name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
@@ -67,13 +64,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-timeout
+          pip install -r requirements-dev.txt
 
       - name: Run pytest
         # --cov=spyeyes 替代 --cov=. 避免把 .venv/.mypy_cache 纳入覆盖率
         # --timeout=15 防 ReDoS 测试卡死整个 CI
-        run: pytest tests/ -v --cov=spyeyes --cov-report=term --cov-report=xml --timeout=15
+        # --timeout-method=thread: Windows 上 SIGALRM 不可用，必须显式声明
+        run: pytest tests/ -v --cov=spyeyes --cov-report=term --cov-report=xml --timeout=15 --timeout-method=thread
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'

@@ -822,3 +822,91 @@ class TestWhoisLookup:
             pytest.skip('whois 依赖未安装')
         result = gt.whois_lookup('')
         assert '_error' in result
+
+    def test_invalid_format_rejected_before_lookup(self):
+        """非法 domain 不会进入 whois.whois，避免 internal traceback 泄漏。"""
+        if not gt.HAS_WHOIS:
+            pytest.skip('whois 依赖未安装')
+        with patch.object(gt.whois, 'whois') as mock_whois:
+            for bad in ('../etc/passwd', 'http://evil.com/', 'a\nb.com', 'no_dot'):
+                result = gt.whois_lookup(bad)
+                assert '_error' in result
+        assert mock_whois.call_count == 0
+
+
+class TestMxLookup:
+    """mx_lookup 输入校验。"""
+
+    def test_invalid_domain_rejected(self):
+        """非法 domain 不会进入 dns.resolver.resolve。"""
+        if not gt.HAS_DNS:
+            pytest.skip('dns 依赖未安装')
+        with patch.object(gt.dns.resolver, 'resolve') as mock_resolve:
+            for bad in ('', '../admin', 'http://x', 'no_dot', 'a\nb'):
+                result = gt.mx_lookup(bad)
+                assert '_error' in result
+        assert mock_resolve.call_count == 0
+
+
+class TestNormalizeDomain:
+    """_normalize_domain 单元测试。"""
+
+    def test_valid_domains(self):
+        for d in ('example.com', 'sub.example.com', 'EXAMPLE.COM', '  gmail.com  '):
+            assert gt._normalize_domain(d) is not None
+
+    def test_invalid_domains(self):
+        for d in ('', '   ', 'no_dot', '../admin', 'http://x.com',
+                  'a..b.com', '-bad.com', 'bad-.com', 'a\nb.com', None):
+            assert gt._normalize_domain(d) is None, f"应拒绝 {d!r}"
+
+    def test_normalizes_to_lowercase(self):
+        assert gt._normalize_domain('GMAIL.COM') == 'gmail.com'
+
+    def test_strips_whitespace(self):
+        assert gt._normalize_domain('  gmail.com  ') == 'gmail.com'
+
+
+class TestPhoneInvalid:
+    """track_phone 拒绝可解析但 not_possible 的号码。"""
+
+    def test_too_short_number_rejected(self):
+        """'+1' 解析成功但 is_possible_number=False。"""
+        result = gt.track_phone('+1')
+        assert '_error' in result, "短号码应被拒绝"
+
+    def test_normal_number_still_works(self):
+        result = gt.track_phone('+8613800138000')
+        assert '_error' not in result
+        assert result['is_valid'] is True
+
+
+class TestEmailMxErrorEnum:
+    """email_validate 的 mx_error 收敛为已知枚举（防 dns_failed 内部细节泄漏）。"""
+
+    def test_nxdomain_collapsed(self):
+        with patch.object(gt, 'mx_lookup',
+                            return_value={'_error': 'NXDOMAIN: example.invalid'}):
+            r = gt.email_validate('user@example.invalid')
+        assert r['mx_error'] == 'nxdomain'
+
+    def test_no_mx_collapsed(self):
+        with patch.object(gt, 'mx_lookup',
+                            return_value={'_error': 'no_mx for x.com'}):
+            r = gt.email_validate('user@x.com')
+        assert r['mx_error'] == 'no_mx'
+
+    def test_invalid_domain_collapsed(self):
+        with patch.object(gt, 'mx_lookup',
+                            return_value={'_error': '域名格式不合法：x'}):
+            r = gt.email_validate('user@x.com')
+        assert r['mx_error'] == 'invalid_domain'
+
+    def test_unknown_collapsed_to_dns_failed(self):
+        """未知错误（含 server IP / socket 细节）收敛为 dns_failed，不泄漏内部信息。"""
+        with patch.object(gt, 'mx_lookup',
+                            return_value={'_error': 'TimeoutError on 10.0.0.1:53'}):
+            r = gt.email_validate('user@x.com')
+        assert r['mx_error'] == 'dns_failed'
+        # 内部 IP 不应出现在结果里
+        assert '10.0.0.1' not in str(r)

@@ -12,12 +12,50 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 代理支持 (`--proxy http://...` / SOCKS5)
 - 批量输入模式 (`--batch ips.txt`)
 - HIBP (Have I Been Pwned) 邮箱泄露集成
-- PyPI 发布 (`pip install spyeyes-cn`)
+- PyPI 发布 (`pip install spyeyes`)
 - Docker 镜像
 
 ---
 
-## [1.2.3] — 2026-04-29
+## [1.3.0] — 2026-04-29
+
+🎉 **品牌全面升级 GhostTrack-CN → SpyEyes**。功能完全相同，只是焕然一新的标识。
+
+### 🎨 Rebrand 改名
+
+- **GitHub 仓库**：`Akxan/GhostTrack-CN` → `Akxan/SpyEyes`（旧 URL 自动 301 重定向）
+- **主脚本**：`GhostTR.py` → `spyeyes.py`
+- **测试**：`tests/test_ghosttrack.py` → `tests/test_spyeyes.py`
+- **配置目录**：`~/.ghosttrack/` → `~/.spyeyes/`
+- **环境变量**：`SPYEYES_LANG`（新）/ `GHOSTTRACK_LANG`（旧版兼容）
+- **本地目录**：`/path/to/GhostTrack` → `/path/to/SpyEyes`
+- **README/CHANGELOG/TUTORIAL/CONTRIBUTING/SECURITY**：全部品牌字样替换
+- **17 个文件 ~200 处替换**
+
+### 🎨 Visual
+
+- **新 ASCII Banner**：旧 GHOST-TRACK slant 字体 → 新 **SPYEYES ANSI Shadow** 粗块体（更醒目）
+- **新社交预览图**：眼睛 + 渐变标题 + CLI demo（asset/social-preview.png 1280×640）
+- **README 双语标题**：🔍 SpyEyes（中英文统一）
+
+### 🛡 Preserved 保留
+
+- HunxByts/GhostTrack 原作者所有致谢链接
+- LICENSE 中关于 derivative work 的声明
+- CHANGELOG 中 v1.0.x / v1.1.x / v1.2.x 历史品牌名（作为历史记录）
+- 旧版本所有 git tag（v1.0.0 / v1.1.0 / v1.1.1 / v1.2.x）
+
+### 🧪 Tests
+
+- 99 测试全过（无功能改动）
+- ruff / mypy / bandit 全清
+
+---
+
+## [1.2.3] — 2026-04-29 (legacy GhostTrack-CN release)
+
+[原 v1.2.3 内容保留如下]
+
 
 经过第 N 轮 5 路独立审计（ruff + mypy + bandit + pytest + superpowers:code-reviewer agent），修复 v1.2.2 引入的 4 个 P1 真 bug + 加 ReDoS 防护。**强烈建议升级**。
 

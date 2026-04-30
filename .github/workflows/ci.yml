@@ -26,7 +26,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff mypy bandit
+          # types-requests: mypy 在装了 requests 但没装 stub 时报 [import-untyped]
+          # （--ignore-missing-imports 只覆盖 [import-not-found] 一类）
+          pip install ruff mypy bandit types-requests
       - name: ruff
         run: ruff check .
       - name: mypy

@@ -123,8 +123,9 @@ def read_history(limit: int = 50, search: Optional[str] = None) -> list:
         return []
     if search:
         s = search.lower()
-        entries = [e for e in entries if s in e.get('query', '').lower()
-                   or s in e.get('cmd', '').lower()]
+        # `or ''` 防 entry 字段值为 None（手工编辑 / 第三方写入 / 老版本数据）
+        entries = [e for e in entries if s in (e.get('query') or '').lower()
+                   or s in (e.get('cmd') or '').lower()]
     # limit <= 0 返回空（与 argparse 校验一致；之前 entries[-0:] 全返回反直觉）
     if limit <= 0:
         return []

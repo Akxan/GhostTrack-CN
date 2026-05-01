@@ -1522,8 +1522,21 @@ class TestRunCli:
                                 json=True, save=None)
         rc = gt.run_cli(args)
         assert rc == 0
-        # 空文件 → []
-        assert '[]' in capsys.readouterr().out
+
+    def test_history_save_actually_writes(self, tmp_path, capsys):
+        """Round 24 加固: history --save 之前早 return 0 静默丢失。
+        现在必须真写文件。"""
+        save_path = str(tmp_path / 'h.json')
+        # 先写一条历史
+        gt.append_history('ip', '8.8.8.8', {'ok': True})
+        args = self._make_args(command='history', limit=10, search=None,
+                                json=True, save=save_path)
+        rc = gt.run_cli(args)
+        assert rc == 0
+        assert os.path.exists(save_path), "history --save 必须真写文件，不能静默丢失"
+        # 内容应是 list 含 1 条
+        loaded = json.loads(open(save_path).read())
+        assert isinstance(loaded, list) and len(loaded) >= 1
 
     def test_myip_network_failure_returns_1(self, capsys, monkeypatch):
         """v1.0.x 加固：myip 网络失败时 exit 1（之前 ip=None 仍 exit 0

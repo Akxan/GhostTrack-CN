@@ -2351,6 +2351,9 @@ def run_cli(args: argparse.Namespace) -> int:
             _emit_json(entries)
         else:
             print_history(entries)
+        # `--save` 在 history 子命令也生效（之前早 return 0 静默丢失）
+        if args.save:
+            _maybe_save(args.save, 'history', entries)
         return 0
     else:
         return 2

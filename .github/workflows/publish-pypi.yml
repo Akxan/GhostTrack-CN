@@ -1,24 +1,22 @@
 name: Publish to PyPI
 
-# 触发：推送 tag (v*) 时自动发布到 PyPI
-# 用 Trusted Publishing (OIDC) — 无需 PyPI token
+# ⚠️ 当前仅手动触发（workflow_dispatch）—— 避免在 PyPI trusted publisher
+# 未配置时推 tag 会让 CI 红。
 #
-# 用户设置（一次性）:
-#   1. 在 https://pypi.org 注册（或登录）
-#   2. 进入 https://pypi.org/manage/account/publishing/ 添加 trusted publisher:
-#      - PyPI Project Name: spyeyes
-#      - Owner: Akxan
-#      - Repository name: SpyEyes
-#      - Workflow filename: publish-pypi.yml
-#      - Environment: pypi
-#   3. 在 GitHub repo Settings → Environments 创建 environment 'pypi'
+# 想自动发布到 PyPI 时再改回 push tag 触发：
+#   1. 在 PyPI 添加 trusted publisher:
+#      Owner=Akxan, Repo=SpyEyes, Workflow=publish-pypi.yml, Env=pypi
+#      https://pypi.org/manage/account/publishing/
+#   2. GitHub repo Settings → Environments 创建 'pypi'
+#   3. 把下面 'on:' 改回 push.tags + workflow_dispatch
 #   4. 推 tag v1.0.x 即自动发布
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+  # 等 PyPI trusted publisher 配好后取消下面注释:
+  # push:
+  #   tags:
+  #     - "v*"
 
 jobs:
   build-and-publish:

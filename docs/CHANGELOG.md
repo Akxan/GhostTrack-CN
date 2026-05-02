@@ -14,9 +14,112 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - HIBP (Have I Been Pwned) 邮箱泄露集成
 - 首次 upload 到 PyPI（package 重构已完成，`pip install .` 已 work，剩 `twine upload`）
 - Docker 镜像
-- 国旗 emoji 在终端的显示宽度修正（当前 `display_width` 8 段 if 链不准确）
 - curl_cffi 浏览器指纹伪装可选（`spyeyes[stealth]`，绕过 Cloudflare）
-- XMind 思维导图报告输出（中文调查交付场景）
+
+---
+
+## [1.2.0] — 2026-05-02
+
+🎨 **8 种报告格式 + 全报告 i18n + 菜单流程优化** —— 围绕"用户输出"的全方位升级。
+
+### ✨ Features 新功能
+
+- **📊 报告格式从 3 种扩展到 8 种** —— 按文件后缀分发，无新强依赖
+  （XMind 纯标准库实现；Graph 用 D3.js v7 from CDN）：
+
+  | 格式 | 后缀 | 实现 | 适用场景 |
+  |---|---|---|---|
+  | JSON | `.json` | stdlib | 管道处理、脚本 |
+  | Markdown | `.md` | 已有 | GitHub Issue / 笔记 |
+  | **HTML** 🆕 | `.html` | stdlib + 内嵌 CSS | 浏览器查看、邮件附件 |
+  | PDF | `.pdf` | reportlab (extras) | 正式报告 |
+  | **TXT** 🆕 | `.txt` | stdlib | 复制粘贴到 ticket |
+  | **CSV** 🆕 | `.csv` | csv stdlib + injection 防护 | Excel / Sheets 数据分析 |
+  | **XMind** 🆕 | `.xmind` | zipfile + xml stdlib | 思维导图（XMind 8 兼容） |
+  | **Graph** 🆕 | `.graph.html` | D3.js v7 (CDN) | 力导向图，可点击跳转 |
+
+- **🌍 报告全本地化** —— 所有 8 种格式的标题 / 列头 / 标签 / 类别名都跟随 UI 语言
+  （新增 21 个 `report.*` i18n 键，覆盖中英双语）。例如：
+  - `SpyEyes Report` / `SpyEyes 报告`
+  - `Username scan` / `用户名扫描`
+  - `Profile URL` / `主页地址`
+  - 类别名：`Code & Dev` / `代码与开发`
+  - Graph legend / help 提示文字也本地化
+  - HTML 加 `<html lang="zh|en">` 属性
+- **🧬 Maigret-style permute** —— `itertools.permutations` 全排列：
+  - 所有子集大小 2..N 的全排列 × 4 种分隔符 `['', '_', '-', '.']`
+  - size-2 排列额外生成首字母变形（`jdoe` / `j.doe` / `jd` / `j_d` 等）
+  - 新增 `--method strict|all` flag：`all` 在 strict 基础上加 `_前缀` / `后缀_` 变体
+  - 现有测试 100% 向后兼容
+- **🚀 默认并发 100 → 150** —— `track_username` / `recursive_track_username`
+  / CLI `--workers` 默认值统一升级 50%；`_check_username` 单平台超时不变 (5s)
+- **🗂 默认报告路径 `~/Downloads`** —— 交互模式智能默认到下载目录
+  （macOS / Linux / Windows 标准），fallback `~/Download` → `~/spyeyes-reports/` → cwd
+- **🔢 交互式格式选择器** —— 选择"保存"后弹出 1-8 数字菜单
+- **🔁 多格式连续保存** —— 保存完一种后追问"还要保存其它格式吗？"循环；时间戳每轮重算，多次保存得到不同文件名
+
+### 🎨 UX 改进
+
+- **菜单从 9 项缩到 8 项**：原 `[8] 用户名变形` 合并到 `[4] 用户名追踪` 子流程：
+  - 进入 [4] 后先选策略：`1. 直接扫描` / `2. 变形 + 批量扫描` / `3. 仅生成变形`
+  - 选 2/3 时进一步选 `--method strict|all`
+  - 语言切换从 `[9]` 移到 `[8]`
+- **D3.js Graph 大改**：
+  - 修复 354+ 节点时上下被裁剪的问题（`flex` 布局让 SVG 占满视窗剩余空间）
+  - 加 `d3.zoom()` 滚轮缩放 + 拖拽空白处平移（scale 0.05–8）
+  - 模拟稳定后或按 <kbd>F</kbd> 自动 fit 到完整可见，<kbd>R</kbd> 重置缩放
+  - 文字加白色描边 (`paint-order: stroke`)，密集区也清晰
+  - 节点越多，charge 越强 + radial force 把命中平台推到外圈
+  - 窗口 resize 自动 refit
+- CLI `--help` epilog 列出所有 8 种格式示例
+
+### 🔒 Security 安全
+
+- `_html_escape()`：转义 `& < > " '` 防 HTML/XML 注入（用于 HTML / XMind / Graph）
+- `_csv_safe()`：单元格首字符为 `= + - @ \t \r` 时前置 `'`，防 Excel/Sheets 公式注入
+- `_to_graph_html` 把 JSON 中的 `</` 转义为 `<\/` 防 `</script>` 注入
+- 所有用户输入字段在 8 种报告里都做对应的 escape
+
+### 🐛 Bug Fixes 修复（独立审计发现）
+
+- **HTTP pool_maxsize 64 → 200**：v1.2.0 升级到 150 worker 后原 64 的连接池成了瓶颈，
+  urllib3 频繁重建连接部分抵消并发提升。现在 pool_connections / pool_maxsize 都是 200。
+- **`my_ip` 报告标题错乱**：`prefix.partition('_')` 把 `'my_ip'` 切成 `cmd='my', query='ip'`
+  导致 8 种报告里全部显示 "MY 信息: ip"。改 `save_prefix` 为 `'myip'` 一处修复全部。
+- **MX 报告在 HTML/TXT/CSV/PDF/XMind 错误回退**：之前只有 Markdown 有 MX 专用渲染分支，
+  其它 5 种格式落到通用 dict 把 records list 压成 Python repr。补齐每种格式的 MX 表格分支。
+- **permute method='all' 截断丢失核心变体**：`_` ASCII 95 < 字母 97，纯字母序排序让
+  `_xxx` 占满前 200，`johndoe` 等核心变体被丢掉。新增 `_permute_sort_key` 把装饰过的
+  `_前缀` / `后缀_` 变体排到非装饰变体后面，截断时丢的是装饰版而非核心。
+- **permute_scan 报告几乎为空**：交互菜单 `[4]→2`（变形+扫描）的数据形态是
+  `{variation: track_result_dict}`，之前 6 种生成器都落到通用 dict 把每个 variation 的
+  扫描结果压成单格 `k=v, k=v` 字符串。现在每种格式都有专属 permute_scan 分支：
+  - Markdown / HTML / PDF / TXT：每个变形一个子节，列出命中平台
+  - CSV：扁平化为 `(variation, category, platform, url)` 四列
+  - XMind：每个变形一棵子树
+  - Graph：多中心力导向图（每个 variation 一个红心 + 蓝色平台子节点）
+- **XMind mimetype 兼容**：按 XMind 8 spec 把 `mimetype` 作为第一个 zip 条目（uncompressed），
+  类似 EPUB 格式约定，提升不同 XMind 版本兼容性。
+
+### 🧹 Cleanup 清理
+
+- 删除已无引用的 i18n 键：`menu.permute` / `prompt.permute_input` / `prompt.permute_scan` / `prompt.save_as`
+- CHANGELOG `[Unreleased]` 段中的 "XMind 思维导图报告输出" 已实现，从 roadmap 移除
+- `.github/release-notes-v1.0.0.md` → `docs/releases/v1.0.0.md`（CHANGELOG 已含完整内容，归档单文件版本）
+- `_default_report_dir()` 加模块级缓存，多格式连续保存循环不再重复 stat
+- CI 测试矩阵加 Python 3.14（lint job 也升 3.13 → 3.14；Codecov 上传跟随升级）
+
+### 🧪 Tests 测试
+
+- 全套 306 个测试 100% 通过（向后兼容验证）
+- 新增 8 种格式 × 2 种语言 × 4 种数据形态的烟囱测试
+- 新增 P0-3 / P0-4 / P1-1 / P1-2 修复的回归验证
+
+### 📦 Packaging 打包
+
+- `__version__` 1.1.0 → 1.2.0
+- `pyproject.toml` description 更新提及 8 种报告格式 + 加 Python 3.14 classifier
+- 主依赖未变（仍是 4 个核心 + 1 个可选 `[pdf]`）
 
 ---
 

@@ -12,7 +12,8 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-306%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-3164-orange.svg)](#-comparison-with-similar-tools)
-[![Version](https://img.shields.io/badge/version-1.1.0-blueviolet.svg)](docs/CHANGELOG.md)
+[![Reports](https://img.shields.io/badge/reports-8%20formats-9cf.svg)](#-report-formats-8-types)
+[![Version](https://img.shields.io/badge/version-1.2.0-blueviolet.svg)](docs/CHANGELOG.md)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://akxan.github.io/SpyEyes/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-installation)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
@@ -33,21 +34,22 @@
 
 ## 📖 About
 
-**SpyEyes** is a Python-based command-line **OSINT (Open-Source Intelligence) toolkit**, deeply optimized for Chinese-speaking users. Integrates IP tracking, phone parsing, username scanning across **3164 platforms**, domain WHOIS / MX lookups, email validation, plus **username permutations / recursive scan / PDF reports** (v1.1.0).
+**SpyEyes** is a Python-based command-line **OSINT (Open-Source Intelligence) toolkit**, deeply optimized for Chinese-speaking users. Integrates IP tracking, phone parsing, username scanning across **3164 platforms**, domain WHOIS / MX lookups, email validation, username permutations / recursive scan, plus **8 fully-localized report formats** (v1.2.0).
 
 Designed for **security researchers, penetration testers, SOC analysts, threat hunters, red/blue teamers, CTF players** and anyone curious about open-source intelligence.
 
 ### 💎 Highlights
 
 - **3164 username-scan platforms** (v1.1.0 jumped from 2067 → 3164, +57%): 48 Chinese-region + 58 Spanish-region + 91 adult/dating + 733 forums
-- **🆕 Username permutations (`permute`)**: auto-generates 22+ variants from "John Doe" (johndoe / j.doe / jd ...), Unicode-aware
-- **🆕 Recursive scan (`--recursive`)**: extracts secondary usernames from hit profile pages, follow-up scans
-- **🆕 PDF reports (`--save report.pdf`)**: optional `spyeyes[pdf]` dependency for one-click investigation reports
-- **Bilingual UI**: interactive menu / CLI / errors all in zh+en
-- **Sherlock-class speed**: 30s for full 3164-platform scan (100-thread concurrent + Session pool + HEAD optimization + ReDoS guard)
+- **🆕 v1.2.0: 8 report formats** — `JSON / Markdown / HTML / PDF / TXT / CSV / XMind / Graph (D3.js)`, all follow current UI language (zh/en)
+- **🆕 v1.2.0: 150-thread default** (up from 100), full scan in ~20s
+- **🆕 v1.2.0: Maigret-style permute** (`itertools.permutations` × 4 separators + `--method strict\|all`)
+- **🆕 v1.2.0: Streamlined interactive menu** — `[4] Username` absorbs the permute sub-flow; numeric 1-8 format chooser when saving + default `~/Downloads`; chained multi-format saves
+- **Recursive scan (`--recursive`)**: extracts secondary usernames from hit profile pages, follow-up scans
+- **Bilingual UI**: interactive menu / CLI / errors / **report content** all in zh+en
+- **Sherlock-class speed**: ~20s for full 3164-platform scan (150-thread concurrent + Session pool + HEAD optimization + ReDoS guard)
 - **WAF detection**: identifies Cloudflare / AWS WAF / PerimeterX blocks to avoid false positives
-- **Multiple modes**: `--quick` (~14s) / `--category` (~3s) / default full (~30s)
-- **Structured output**: JSON / Markdown / **PDF** / persistent history
+- **Multiple modes**: `--quick` (~10s) / `--category` (~3s) / default full (~20s)
 - **306 pytest tests**: 5-pronged audit clean (ruff / mypy / bandit / pytest / agent)
 
 ---
@@ -77,7 +79,7 @@ Designed for **security researchers, penetration testers, SOC analysts, threat h
 ### 👤 Username Scan
 - **3164 platforms** (Maigret + Sherlock + WhatsMyName, with Maigret engine resolution)
 - **48 Chinese-region** + **58 Spanish-region** + **733 forums**
-- **100-thread concurrent**, full ~30s, quick mode ~14s
+- **150-thread concurrent**, full ~20s, quick mode ~10s
 - Dual detection: not-found patterns + must-contain + WAF detection
 - Shows hits only by default, use `--all` for full report
 - **🆕 v1.1.0**: `--recursive` for follow-up scans (depth 0-2), `permute` subcommand for username variations
@@ -195,23 +197,33 @@ python3 -m spyeyes email someone@gmail.com
 python3 -m spyeyes ip 8.8.8.8 --json --save results/
 ```
 
-### 🆕 v1.1.0 New features
+### 🆕 v1.2.0 New features
 
 ```bash
-# 1) Username permutations: 22+ variants from "John Doe"
-python3 -m spyeyes permute "John Doe"
+# 1) 8 report formats — auto-dispatched by --save file extension
+python3 -m spyeyes user torvalds --save report.html       # HTML (styled)
+python3 -m spyeyes user torvalds --save report.pdf        # PDF (needs spyeyes[pdf])
+python3 -m spyeyes user torvalds --save report.xmind      # XMind 8 mind-map
+python3 -m spyeyes user torvalds --save report.graph.html # D3.js force-directed graph
+python3 -m spyeyes user torvalds --save report.csv        # CSV (injection-protected)
+python3 -m spyeyes user torvalds --save report.txt        # Plain text
+python3 -m spyeyes user torvalds --save report.md         # Markdown
+python3 -m spyeyes user torvalds --save report.json       # JSON
 
-# 2) Permute + scan each variant (great for alias hunting)
-python3 -m spyeyes permute "Linus Torvalds" --scan --quick
+# 2) Reports follow UI language
+python3 -m spyeyes --lang zh user torvalds --save zh.html
+python3 -m spyeyes --lang en user torvalds --save en.html
 
-# 3) Recursive scan: extract secondary usernames from hit pages
+# 3) Maigret-style permute (method=all adds _prefix/suffix_)
+python3 -m spyeyes permute "John Doe"                     # strict (default)
+python3 -m spyeyes permute "John Doe" --method all
+python3 -m spyeyes permute "Linus Torvalds" --scan --quick  # permute + auto-scan
+
+# 4) Recursive scan
 python3 -m spyeyes user torvalds --recursive --depth 2
 
-# 4) PDF report (requires: pip install "spyeyes[pdf]")
-python3 -m spyeyes user torvalds --save report.pdf
-
-# 5) Unicode-aware (Chinese name)
-python3 -m spyeyes permute "张 三" --lang en
+# 5) Default 150-thread concurrency (up from 100)
+python3 -m spyeyes user torvalds --workers 200
 ```
 
 ---
@@ -289,6 +301,37 @@ done
 
 ---
 
+## 📊 Report formats (8 types)
+
+Auto-dispatched by `--save <file>` extension. All formats follow the current UI language (zh/en):
+
+| Format | Suffix | Implementation | Use case |
+|---|---|---|---|
+| **JSON** | `.json` | stdlib | Pipelines, scripts, API integration |
+| **Markdown** | `.md` | stdlib (with injection escaping) | GitHub Issues, notes, wiki |
+| **HTML** | `.html` | stdlib + inline CSS | Browser viewing, email attachments |
+| **PDF** | `.pdf` | reportlab (optional `[pdf]`) | Formal investigation reports, archive |
+| **TXT** | `.txt` | stdlib | Paste into tickets / IM / email |
+| **CSV** | `.csv` | csv stdlib + Excel-formula injection guard | Excel / Google Sheets / pandas |
+| **XMind** | `.xmind` | zipfile + xml stdlib | Mind-map (XMind 8 compatible) |
+| **Graph** | `.graph.html` | D3.js v7 (CDN) | Interactive force-directed graph |
+
+```bash
+python3 -m spyeyes user torvalds --save report.html
+python3 -m spyeyes user torvalds --save report.xmind
+python3 -m spyeyes user torvalds --save report.graph.html
+```
+
+**Interactive mode**: after picking "Save report", you'll see a `[1] JSON ... [8] Graph` numeric chooser, default path `~/Downloads/`. After saving, you'll be asked "Save another format?" — chain multiple format outputs in one session.
+
+> **Security**: HTML / Graph use `_html_escape` against XSS; CSV cells starting with `= + - @ \t \r` are prefixed with `'` to neutralize Excel/Sheets formula injection; the Graph escapes `</` to `<\/` inside embedded JSON to prevent `</script>` injection.
+
+> **Notes**:
+> - `--save DIR/` (trailing slash or existing directory) always writes **JSON** with timestamped names — to pick a format, give a concrete file path like `--save report.html`
+> - **Report content follows `--lang`** — including CSV column headers (zh outputs `分类,平台,主页地址,状态`). Downstream scripts (pandas/jq) needing stable column names should pin `--lang en` or read JSON instead.
+
+---
+
 ## 🧪 Tests
 
 ```bash
@@ -297,7 +340,7 @@ pytest tests/ -v
 pytest tests/ --cov=. --cov-report=term-missing
 ```
 
-- ✅ **306 tests**, ~0.6 seconds (v1.1.0 comprehensive coverage)
+- ✅ **306 tests**, ~0.6 seconds (v1.2.0 comprehensive coverage)
 - ✅ Pure functions + HTTP mocking + edge cases + SSRF/ReDoS defenses
 - ✅ GitHub Actions runs on macOS / Ubuntu / **Windows** × Python 3.10-3.13
 - ✅ Dedicated lint job (ruff + mypy + bandit)
@@ -315,7 +358,7 @@ SpyEyes/
 ├── spyeyes/                    # Main package (v1.0.0+)
 │   ├── __init__.py             # Main code (all features + i18n + __version__)
 │   ├── __main__.py             # python -m spyeyes entry point
-│   └── data/platforms.json     # 3164-platform database (v1.1.0)
+│   └── data/platforms.json     # 3164-platform database (Maigret + Sherlock + WhatsMyName merged)
 ├── README.md                   # 中文 README
 ├── README.en.md                # English README (you are here)
 ├── LICENSE                     # Apache 2.0

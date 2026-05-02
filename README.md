@@ -12,7 +12,8 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-306%20passed-success.svg)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-3164-orange.svg)](#-与同类工具对比)
-[![Version](https://img.shields.io/badge/version-1.1.0-blueviolet.svg)](docs/CHANGELOG.md)
+[![Reports](https://img.shields.io/badge/reports-8%20formats-9cf.svg)](#-报告格式8-种)
+[![Version](https://img.shields.io/badge/version-1.2.0-blueviolet.svg)](docs/CHANGELOG.md)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://akxan.github.io/SpyEyes/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows%20%7C%20Termux-lightgrey)](#-安装)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
@@ -33,21 +34,22 @@
 
 ## 📖 项目简介
 
-**SpyEyes** 是一款用 Python 编写的命令行 **OSINT（开源情报）信息收集工具**，专为中文用户深度优化。集成 IP 追踪、电话号码解析、用户名扫描（**3164 个平台 / 中英双语**）、域名 WHOIS / MX 查询、邮箱有效性验证、**用户名变形 / 递归扫描 / PDF 报告**等功能。
+**SpyEyes** 是一款用 Python 编写的命令行 **OSINT（开源情报）信息收集工具**，专为中文用户深度优化。集成 IP 追踪、电话号码解析、用户名扫描（**3164 个平台 / 中英双语**）、域名 WHOIS / MX 查询、邮箱有效性验证、**用户名变形 / 递归扫描 / 8 种报告格式**等功能。
 
 适合 **网络安全研究人员、渗透测试工程师、SOC 分析师、技术调查员、红队蓝队成员、CTF 玩家** 以及任何对开源情报感兴趣的开发者使用。
 
 ### 💎 项目亮点
 
 - **3164 个用户名扫描平台**（v1.1.0 从 2067 飙到 3164，+57%）：含 48 中文圈 + 58 西语圈 + 91 成人/约会 + 733 论坛
-- **🆕 用户名变形 (`permute`)**：从 "John Doe" 自动生成 22+ 个变形（johndoe / j.doe / jd ...），支持中文姓名
-- **🆕 递归扫描 (`--recursive`)**：在命中页面提取次级用户名继续扫描，挖掘关联账号
-- **🆕 PDF 报告 (`--save report.pdf`)**：可选 `spyeyes[pdf]` 依赖，调查报告一键导出
-- **中英双语 UI**：交互菜单 / CLI 参数 / 错误信息 全部双语
-- **Sherlock 级速度**：30 秒扫完 3164 平台（100 线程并发 + Session 池 + HEAD 优化 + ReDoS 防护）
+- **🆕 v1.2.0：8 种报告格式** —— `JSON / Markdown / HTML / PDF / TXT / CSV / XMind / Graph (D3.js)`，全部跟随 UI 语言（中/英）
+- **🆕 v1.2.0：默认并发 150 线程**（从 100 升级），全量扫完 ~20 秒
+- **🆕 v1.2.0：Maigret-style permute**（`itertools.permutations` × 4 种分隔符 + `--method strict\|all`）
+- **🆕 v1.2.0：交互式菜单优化** —— `[4] 用户名追踪`合并变形子流程；保存时 1-8 数字选格式 + 默认 `~/Downloads`；连续多格式保存
+- **递归扫描 (`--recursive`)**：在命中页面提取次级用户名继续扫描，挖掘关联账号
+- **中英双语 UI**：交互菜单 / CLI 参数 / 错误信息 / **报告内容**全部双语
+- **Sherlock 级速度**：~20 秒扫完 3164 平台（150 线程并发 + Session 池 + HEAD 优化 + ReDoS 防护）
 - **WAF 检测**：识别 Cloudflare / AWS WAF / PerimeterX 等反爬墙，避免误报
-- **多种查询模式**：`--quick`（~14s）/ `--category`（~3s）/ 默认完整（~30s）
-- **结构化输出**：JSON / Markdown / **PDF** / 历史记录持久化
+- **多种扫描模式**：`--quick`（~10s）/ `--category`（~3s）/ 默认完整（~20s）
 - **306 个 pytest 测试**：5 路审计全清（ruff / mypy / bandit / pytest / agent）
 
 ---
@@ -77,7 +79,7 @@
 ### 👤 用户名扫描
 - **3164 个平台**（合并 Maigret + Sherlock + WhatsMyName，含 Maigret engine 解析）
 - **48 中文圈**（陆/台/港/星/马）+ **58 西语圈**（西班牙/拉美）+ **733 论坛**
-- **100 线程并发**，全部扫完 ~30 秒（quick 模式 ~14 秒）
+- **150 线程并发**，全部扫完 ~20 秒（quick 模式 ~10 秒）
 - 内容关键词 + `must_contain` 双重检测 + WAF 识别
 - 默认只显示命中，`--all` 看完整结果
 - **🆕 v1.1.0**：`--recursive` 递归扫描（深度 0-2）+ `permute` 子命令（用户名变形）
@@ -202,23 +204,33 @@ python3 -m spyeyes history --json | jq           # JSON pipeline
 python3 -m spyeyes ip 8.8.8.8 --json --save results/
 ```
 
-### 🆕 v1.1.0 新功能演示
+### 🆕 v1.2.0 新功能演示
 
 ```bash
-# 1) 用户名变形：从 "John Doe" 生成 22+ 变形
-python3 -m spyeyes permute "John Doe"
+# 1) 8 种报告格式 —— 按 --save 文件后缀分发
+python3 -m spyeyes user torvalds --save report.html      # HTML（含 CSS 样式）
+python3 -m spyeyes user torvalds --save report.pdf       # PDF（需 spyeyes[pdf]）
+python3 -m spyeyes user torvalds --save report.xmind     # XMind 8 思维导图
+python3 -m spyeyes user torvalds --save report.graph.html # D3.js 力导向图
+python3 -m spyeyes user torvalds --save report.csv       # CSV（含 injection 防护）
+python3 -m spyeyes user torvalds --save report.txt       # 纯文本
+python3 -m spyeyes user torvalds --save report.md        # Markdown
+python3 -m spyeyes user torvalds --save report.json      # JSON
 
-# 2) 用户名变形 + 自动扫描（找化名/小号利器）
-python3 -m spyeyes permute "Linus Torvalds" --scan --quick
+# 2) 报告内容跟随 UI 语言：中文 UI 出中文报告，英文 UI 出英文报告
+python3 -m spyeyes --lang zh user torvalds --save zh.html
+python3 -m spyeyes --lang en user torvalds --save en.html
 
-# 3) 递归扫描：在命中页面提取次级用户名继续扫
+# 3) Maigret-style 用户名变形（method=all 包含 _前缀/后缀_）
+python3 -m spyeyes permute "John Doe"                    # strict（默认）
+python3 -m spyeyes permute "John Doe" --method all       # 含 _johndoe / johndoe_
+python3 -m spyeyes permute "Linus Torvalds" --scan --quick  # 变形 + 自动扫描
+
+# 4) 递归扫描：在命中页面提取次级用户名继续扫
 python3 -m spyeyes user torvalds --recursive --depth 2
 
-# 4) PDF 报告（需 pip install "spyeyes[pdf]"）
-python3 -m spyeyes user torvalds --save report.pdf
-
-# 5) 中文姓名变形（也支持 Unicode）
-python3 -m spyeyes permute "张 三" --lang zh
+# 5) 默认 150 线程并发（从 100 升级）；可调
+python3 -m spyeyes user torvalds --workers 200
 ```
 
 ---
@@ -288,15 +300,17 @@ python3 -m spyeyes
 [ 1 ] IP 追踪
 [ 2 ] 查看本机 IP
 [ 3 ] 电话号码追踪
-[ 4 ] 用户名追踪
+[ 4 ] 用户名追踪 / 变形扫描   ← v1.2.0：合并变形子流程
 [ 5 ] 域名 WHOIS 查询
 [ 6 ] 域名 MX 记录
 [ 7 ] 邮箱有效性检查
-[ 8 ] 切换语言 / Language
+[ 8 ] 切换语言 / Language     ← v1.2.0：从 [9] 移到 [8]
 [ 0 ] 退出
 
  [ + ] 请选择功能 :
 ```
+
+> **v1.2.0 菜单流程**：进入 [4] 用户名追踪后会先选策略 (1=直接扫描 / 2=变形+扫描 / 3=仅生成变形)；扫完询问保存时弹 1-8 数字格式选择菜单 + 默认 `~/Downloads/` 路径，可连续保存多种格式。
 
 ### 2️⃣ 命令行模式（脚本友好）
 
@@ -327,6 +341,43 @@ python3 -m spyeyes mx gmail.com --save results
 
 ---
 
+## 📊 报告格式（8 种）
+
+按 `--save <文件>` 的后缀自动分发，所有格式都跟随当前 UI 语言（中/英）：
+
+| 格式 | 后缀 | 实现 | 适用场景 |
+|---|---|---|---|
+| **JSON** | `.json` | stdlib | 管道处理、脚本调用、API 集成 |
+| **Markdown** | `.md` | stdlib（含注入转义） | GitHub Issue、笔记、wiki |
+| **HTML** | `.html` | stdlib + 内嵌 CSS | 浏览器查看、邮件附件、外发报告 |
+| **PDF** | `.pdf` | reportlab（可选 `[pdf]`） | 正式调查报告、归档 |
+| **TXT** | `.txt` | stdlib | 复制粘贴到 ticket / IM / 邮件 |
+| **CSV** | `.csv` | csv stdlib + Excel 公式注入防护 | Excel / Google Sheets / pandas |
+| **XMind** | `.xmind` | zipfile + xml stdlib | 思维导图（XMind 8 兼容） |
+| **Graph** | `.graph.html` | D3.js v7 (CDN) | 力导向关系图，可点击跳转 |
+
+```bash
+# 自动按后缀分发，全部 8 种格式都 work：
+python3 -m spyeyes user torvalds --save report.html
+python3 -m spyeyes user torvalds --save report.xmind
+python3 -m spyeyes user torvalds --save report.graph.html
+```
+
+**交互模式**：选"保存报告 → 是"后会弹出 `[1] JSON ... [8] Graph` 数字菜单，
+默认路径 `~/Downloads/`，保存完追问"还要保存其它格式吗？"可连续多种格式输出。
+
+> **安全防护**：HTML / Graph 用 `_html_escape` 防 XSS；CSV 单元格首字符为
+> `= + - @ \t \r` 时前置 `'` 防 Excel/Sheets 公式注入；Graph 中嵌入 JSON 的
+> `</` 转义为 `<\/` 防 `</script>` 注入。
+
+> **注意**：
+> - `--save DIR/`（目录形式，以 `/` 结尾或目录已存在）固定输出 **JSON**，按时间戳命名归档；
+>   要选格式请用具体的文件路径如 `--save report.html`
+> - **报告内容跟随 `--lang`** —— CSV 列头也会本地化（中文 UI 输出 `分类,平台,主页地址,状态`）。
+>   下游用 pandas/jq 等需要稳定列名的脚本，请用 `--lang en` 或直接读 JSON
+
+---
+
 ## 🧪 测试
 
 ```bash
@@ -341,8 +392,8 @@ pytest tests/ --cov=. --cov-report=term-missing
 ```
 
 当前测试覆盖：
-- ✅ **306 个测试**，0.6 秒跑完（v1.1.0 完整覆盖）
-- ✅ 覆盖纯函数 + HTTP mock + 边界条件 + SSRF/ReDoS 防御
+- ✅ **306 个测试**，0.6 秒跑完（v1.2.0 完整覆盖）
+- ✅ 覆盖纯函数 + HTTP mock + 边界条件 + SSRF/ReDoS 防御 + 8 种报告格式 × 2 种语言
 - ✅ GitHub Actions 在 macOS / Ubuntu / **Windows** × Python 3.10-3.13 自动测试
 - ✅ 独立 lint job（ruff + mypy + bandit）
 
@@ -360,7 +411,7 @@ SpyEyes/
 ├── spyeyes/                    # 主包（v1.0.0 起）
 │   ├── __init__.py             # 主代码（含全部功能 + i18n + __version__）
 │   ├── __main__.py             # python -m spyeyes 入口
-│   └── data/platforms.json     # 3164 平台数据库 (v1.1.0)
+│   └── data/platforms.json     # 3164 平台数据库（合并 Maigret + Sherlock + WhatsMyName）
 ├── README.md                   # 你正在看的这个（中文入口）
 ├── README.en.md                # English entry
 ├── LICENSE                     # Apache 2.0

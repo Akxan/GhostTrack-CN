@@ -347,7 +347,9 @@ TRANSLATIONS: dict = {
         'prompt.permute_scan':  'Also scan each variation across platforms? [y/N] : ',
         'prompt.recursive':     'Recursive scan (extract sub-usernames from hits)? [y/N] : ',
         'prompt.recursive_depth':'Recursive depth [1-2, default 2] : ',
-        'prompt.save_as':       'Save report to file? (e.g. report.pdf / .md / .json — Enter to skip): ',
+        'prompt.save_confirm':  'Save report? [y/N] : ',
+        'prompt.save_filename': 'Filename [default: {default}, supports .pdf/.md/.json/.txt]: ',
+        'prompt.save_as':       'Save report to file? (e.g. report.pdf / .md / .json — Enter to skip): ',  # legacy, kept for compat
     },
     'zh': {
         'menu.ip_track':        'IP 追踪',
@@ -511,7 +513,9 @@ TRANSLATIONS: dict = {
         'prompt.permute_scan':  '是否同时扫描每个变形？[y/N] : ',
         'prompt.recursive':     '是否递归扫描（从命中页面提取次级用户名）？[y/N] : ',
         'prompt.recursive_depth':'递归深度 [1-2，默认 2] : ',
-        'prompt.save_as':       '保存报告到文件？（如 report.pdf / .md / .json，回车跳过）: ',
+        'prompt.save_confirm':  '是否保存报告？[y/N] : ',
+        'prompt.save_filename': '文件名 [默认 {default}, 支持 .pdf/.md/.json/.txt]: ',
+        'prompt.save_as':       '保存报告到文件？（如 report.pdf / .md / .json，回车跳过）: ',  # 旧键留作兼容
     },
 }
 
@@ -2208,21 +2212,35 @@ def show_menu() -> None:
 
 
 def _interactive_save_prompt(prefix: str, data: Any, save_dir: Optional[str]) -> None:
-    """交互模式下统一的"保存报告"询问（v1.1.0）。
-    - 若用户启动时传了 --save DIR，仍用旧逻辑（保存到目录），不打扰交互
-    - 否则问一次："保存到 ... ？"，回车跳过；接受 .pdf / .md / .json
-    安全：拒绝 path traversal（'..' / 绝对路径以外的奇怪输入），过滤 stdin EOF。
+    """交互模式下两段式"保存报告"询问（v1.1.0 修复 UX）。
+    - 若用户启动时传了 --save DIR，仍用旧逻辑（保存到目录），不再问
+    - 否则：第一步问 y/N（明确的二元选择，避免误把"保存"当作答案），
+            第二步问文件名（带智能默认值 prefix.json，回车即用默认）
+    安全：EOF / KeyboardInterrupt 友好处理；输入文件名做 strip 防尾空格。
     """
     if save_dir:
         # CLI 已指定 --save DIR：沿用原有目录归档逻辑，不再问
         _maybe_save(save_dir, prefix, data)
         return
     try:
-        target = input(f"\n {Color.Wh}{t('prompt.save_as')}{Color.Gr}").strip()
-    except EOFError:
+        ans = input(f"\n {Color.Wh}{t('prompt.save_confirm')}{Color.Gr}").strip().lower()
+    except (EOFError, KeyboardInterrupt):
         return
+    # 明确的肯定回答；其他一律视为跳过（含老用户敲过的"保存"/"是"，向下兼容）
+    if ans not in ('y', 'yes', '是', 'true', '1', '保存'):
+        return
+    # 智能默认文件名：用 prefix 推断，安全清理（去除 url/路径里的非法字符）
+    safe_prefix = re.sub(r'[^\w.+-]', '_', prefix)[:60] or 'report'
+    default_name = f"{safe_prefix}.json"
+    try:
+        target = input(
+            f" {Color.Wh}{t('prompt.save_filename', default=default_name)}{Color.Gr}"
+        ).strip()
+    except (EOFError, KeyboardInterrupt):
+        return
+    # 回车 → 用默认；非空 → 用用户输入
     if not target:
-        return
+        target = default_name
     _maybe_save(target, prefix, data)
 
 
@@ -2381,7 +2399,9 @@ def _maybe_save(target: Optional[str], prefix: str, data: Any) -> None:
         # 包含 PermissionError / FileNotFoundError / NotADirectoryError 等
         sys.stderr.write(f"\n {Color.Re}[error] {t('err.save_failed', target=target, err=e)}{Color.Reset}\n")
         return
-    print(f"\n {Color.Cy}{t('msg.saved_to', path=path)}{Color.Reset}")
+    # 显示绝对路径，方便用户立刻找到文件（解决"我的文件存哪去了"困惑）
+    abs_path = os.path.abspath(path)
+    print(f"\n {Color.Cy}{t('msg.saved_to', path=abs_path)}{Color.Reset}")
 
 
 def _md_escape(s: Any) -> str:
